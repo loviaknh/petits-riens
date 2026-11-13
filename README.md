@@ -69,6 +69,8 @@ Les apps s'installent **sans store et sans compte** (PWA), avec une icône et un
 
 La configuration (NPI fictif, canal sûr, consentement) se fait **une seule fois** et sert aux deux apps.
 
+**Conversation éphémère :** la discussion avec mimi n'est jamais enregistrée et **s'efface dès que l'étudiante quitte l'app**. À son retour, la conversation est neuve. L'agresseur qui ouvre mimi ne voit ni la phrase secrète ni les messages collés. Le coffre, lui, est conservé : il faut donc faire l'appui long juste après avoir collé un message.
+
 ## Script de démo (3 minutes)
 
 1. **(20 s) Le problème.** « Deux situations : Aïcha (fictive) dont l'ex surveille le téléphone, et une agression physique où elle n'a que quelques secondes. »

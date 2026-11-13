@@ -295,21 +295,40 @@ const WELCOME = `
     </svg>
   </div>`;
 
+/* ---------- CONVERSATION ÉPHÉMÈRE (sécurité par défaut) ----------
+ * La discussion n'est JAMAIS enregistrée sur le téléphone : elle vit
+ * uniquement en mémoire et s'efface dès que l'étudiante quitte l'app.
+ * Si l'agresseur ouvre mimi plus tard, il ne voit ni la phrase secrète,
+ * ni les messages collés. (Le coffre, lui, est conservé à part.) */
+let session = 0;                 // change à chaque effacement : les réponses en attente sont abandonnées
+Mimi.saveChat([]);               // purge l'historique enregistré par les anciennes versions
+
 function showChat() {
   $('onboarding').classList.add('hidden');
   $('chat').classList.remove('hidden');
   messagesEl.innerHTML = WELCOME + '<div class="day">Aujourd\'hui · ' + Mimi.formatTime(Date.now()) + '</div>';
-  const history = Mimi.getChat();
-  if (history.length === 0) addMessage('mimi', 'Tu as pu prendre une petite pause aujourd\'hui ?');
-  else history.forEach(renderMessage);
-  scrollDown();
+  addMessage('mimi', 'Tu as pu prendre une petite pause aujourd\'hui ?');
 }
 
 function addMessage(from, text) {
-  const m = { from, text, at: Date.now() };
-  const h = Mimi.getChat(); h.push(m); Mimi.saveChat(h);
-  renderMessage(m); scrollDown();
+  renderMessage({ from, text, at: Date.now() }); // affichage seulement, rien n'est stocké
+  scrollDown();
 }
+
+/** Efface la conversation quand l'app passe en arrière-plan ou se ferme. */
+function wipeConversation() {
+  if ($('chat').classList.contains('hidden')) return;
+  session++;
+  replyChain = Promise.resolve();
+  messagesEl.innerHTML = '';
+  $('input').value = '';
+  $('settings').classList.add('hidden');
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) wipeConversation();
+  else if (!$('chat').classList.contains('hidden')) showChat(); // au retour : conversation neuve
+});
+window.addEventListener('pagehide', wipeConversation);
 function renderMessage(m) {
   const div = document.createElement('div');
   div.className = 'msg ' + m.from;
@@ -348,11 +367,13 @@ $('composer').addEventListener('submit', (e) => {
 /* mimi répond toujours dans l'ordre des messages (file de réponses) */
 let replyChain = Promise.resolve();
 function mimiReplies(text) {
+  const mySession = session;
   replyChain = replyChain.then(() => new Promise((done) => {
+    if (mySession !== session) return done(); // conversation effacée entre-temps
     const t = document.createElement('div');
     t.className = 'typing'; t.innerHTML = '<span></span><span></span><span></span>';
     messagesEl.appendChild(t); scrollDown();
-    setTimeout(() => { t.remove(); addMessage('mimi', text); done(); }, 700 + Math.random() * 700);
+    setTimeout(() => { t.remove(); if (mySession === session) addMessage('mimi', text); done(); }, 700 + Math.random() * 700);
   }));
 }
 

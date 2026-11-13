@@ -46,7 +46,7 @@
 
 | Principe | Mise en œuvre |
 |---|---|
-| **Confidentialité** | Rien ne part sans alerte. Phrase secrète jamais affichée. Pseudonyme, NPI masqué. Ni GPS ni preuve collectée par le carnet |
+| **Confidentialité** | Rien ne part sans alerte. Conversation mimi éphémère : jamais stockée, effacée dès qu'on quitte l'app. Phrase secrète jamais affichée. Pseudonyme, NPI masqué. Ni GPS ni preuve collectée par le carnet |
 | **Sécurité par défaut** | Ni son, ni vibration, ni notification côté étudiante. Noms et icônes neutres. Aucun réglage nécessaire |
 | **Accessibilité** | mimi pour qui lit et écrit, carnet sans texte pour les autres situations. Grandes cibles, vitesse réglable, entraînement, hors ligne |
 | **Recours et contrôle humain** | Toute alerte est traitée par une agente. La cellule ne recontacte que par le canal sûr choisi par l'étudiante. Escalade décidée par un humain. Tout est journalisé |
