@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Icône neutre : un carnet avec un petit cœur -->
+  <rect width="512" height="512" rx="112" fill="#F8F3EB"/>
+  <rect x="136" y="96" width="250" height="320" rx="28" fill="#F2D6C8"/>
+  <rect x="136" y="96" width="44" height="320" rx="20" fill="#E9C3B2"/>
+  <path d="M283 312s-62-38-62-80c0-22 16-36 34-36 13 0 22 7 28 17 6-10 15-17 28-17 18 0 34 14 34 36 0 42-62 80-62 80z" fill="#C46B62"/>
+</svg>

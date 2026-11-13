@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Nom NEUTRE : un carnet de "petits riens" (journal de bien-être) -->
+  <title>Les petits riens</title>
+  <meta name="theme-color" content="#F8F3EB">
+  <link rel="manifest" href="carnet.webmanifest">
+  <link rel="icon" href="carnet-icon.svg" type="image/svg+xml">
+  <!-- iPhone : icône PNG, nom neutre et plein écran une fois ajoutée à l'écran d'accueil -->
+  <link rel="apple-touch-icon" href="carnet-icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="Petits riens">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Lora:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ============ Le carnet secret — papier & symboles (maquette) ============
+     * Interface SANS TEXTE en mode normal, grandes cibles tactiles (≈260×172).
+     * Lora est réservée à l'identité de l'app, hors écran discret. */
+    :root {
+      --paper: #F8F3EB; --rule: #EAE1D3; --margin: #EBC9BD;
+      --heart-bg: #F2D6C8; --heart: #C46B62;
+      --star-bg: #F4E79E;  --star: #A88A2F;
+      --cloud-bg: #E2D8ED; --cloud: #8B7593;
+      --ink: #3E3528; --muted: #8C8274; --hole: #DCD2C2; --hole-on: #B7A993;
+      --font: "DM Sans", "Segoe UI", system-ui, sans-serif; --serif: "Lora", Georgia, serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: var(--font); color: var(--ink); background: var(--paper); display: flex; justify-content: center; align-items: center;
+      -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+    .phone { width: 100%; max-width: 440px; height: 100dvh; position: relative; overflow: hidden;
+      /* Papier ligné + marge */
+      background:
+        linear-gradient(90deg, transparent 30px, var(--margin) 30px, var(--margin) 31.5px, transparent 31.5px, transparent 36px, var(--margin) 36px, var(--margin) 37px, transparent 37px),
+        repeating-linear-gradient(180deg, transparent 0 31px, var(--rule) 31px 32px),
+        var(--paper); }
+    @media (min-width: 700px) and (min-height: 760px) {
+      body { background: radial-gradient(circle at 30% 20%, #F6EFE3, #E9DFCF); }
+      .phone { width: 390px; height: 800px; border-radius: 44px; border: 10px solid #2C2638; box-shadow: 0 30px 80px rgba(62,53,40,.28); }
+    }
+    .hidden { display: none !important; }
+
+    /* ---------- GLASSMORPHISME : taches de couleur floues derrière le verre ----------
+     * Le verre dépoli n'a d'effet que s'il y a quelque chose à flouter derrière :
+     * on pose des taches douces reprises de la palette (pêche, jaune, lavande). */
+    .blobs { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+    .blobs i { position: absolute; border-radius: 50%; filter: blur(46px); opacity: .75; }
+    .blobs i:nth-child(1) { width: 260px; height: 260px; background: #F2C4B0; top: 40px; left: -70px; }
+    .blobs i:nth-child(2) { width: 240px; height: 240px; background: #F4E08A; top: 300px; right: -80px; }
+    .blobs i:nth-child(3) { width: 280px; height: 280px; background: #CDBDE6; bottom: 40px; left: -40px; }
+    .blobs i:nth-child(4) { width: 160px; height: 160px; background: #F6D9CF; bottom: -40px; right: 10px; }
+    /* Trombone décoratif accroché au coin de la feuille (ne capte aucun appui) */
+    /* Il pince le coin de la carte cœur, comme une fiche attachée à la feuille */
+    .clip { position: absolute; top: 22px; left: calc(50% - min(130px, 36vw) + 6px); width: 34px; height: 104px; z-index: 2; pointer-events: none;
+      transform: rotate(-12deg); filter: drop-shadow(1px 3px 2px rgba(62,53,40,.28)); }
+    /* Tout le contenu passe au-dessus des taches */
+    .binding, .cards, .coach, .tab { position: relative; z-index: 1; }
+    .tab { position: absolute; }
+
+    /* ---------- Reliure (appui long 3 s = réglages secrets) ---------- */
+    .binding { display: flex; justify-content: center; gap: 22px; padding: 26px 0 18px; touch-action: manipulation; }
+    .binding i { width: 11px; height: 11px; border-radius: 50%; background: var(--hole); box-shadow: inset 0 1px 2px rgba(0,0,0,.12); transition: background 1.2s; }
+    /* Indice discret : le 3e trou fonce légèrement quand une alerte est partie */
+    .binding i.sent { background: var(--hole-on); }
+
+    /* Onglets décoratifs sur le bord droit */
+    .tab { position: absolute; right: 0; width: 18px; border-radius: 6px 0 0 6px; }
+    .tab.t1 { top: 70px; height: 46px; background: #E2D8ED; } .tab.t2 { top: 124px; height: 36px; background: #F2D6C8; }
+
+    /* ---------- Les trois cartes ---------- */
+    .cards { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 6px 0 30px; }
+    /* Cartes en verre dépoli TEINTÉ : la couleur reste le repère principal
+     * (interface sans texte : on reconnaît chaque carte à sa couleur). */
+    .card { width: min(260px, 72vw); height: 172px; border-radius: 24px; display: grid; place-items: center; cursor: pointer;
+      border: 1px solid rgba(255,255,255,.65);
+      -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8), inset 0 -1px 0 rgba(255,255,255,.25), 0 12px 32px rgba(62,53,40,.12);
+      transition: transform .12s ease-out; touch-action: manipulation; position: relative; overflow: hidden; }
+    /* Reflet lumineux en haut de chaque carte */
+    .card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255,255,255,.55), rgba(255,255,255,0) 45%); pointer-events: none; }
+    .card svg { width: 96px; height: 96px; pointer-events: none; position: relative; filter: drop-shadow(0 4px 8px rgba(62,53,40,.15)); }
+    .card.heart { background: rgba(242,200,184,.55); transform: rotate(-2deg); }
+    .card.star  { background: rgba(244,226,140,.55); transform: rotate(1.5deg); }
+    .card.cloud { background: rgba(214,200,234,.6);  transform: rotate(-1deg); }
+    /* Même retour visuel pour TOUS les appuis (simple ou double) : rien ne trahit l'alerte */
+    .card.press { transform: scale(.97) rotate(0deg); }
+    .card:focus-visible { outline: 3px solid var(--cloud); outline-offset: 4px; }
+
+    /* ---------- Entraînement ---------- */
+    .coach { margin: 0 22px 10px 44px; background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.7); border-radius: 20px; padding: 14px 16px;
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 8px 24px rgba(62,53,40,.1); }
+    .coach b.tag { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--cloud); }
+    .coach p { font-size: 15px; line-height: 1.4; margin-top: 4px; }
+    .coach .progress { display: flex; gap: 6px; margin-top: 10px; }
+    .coach .progress i { flex: 1; height: 6px; border-radius: 3px; background: #E8E0D2; } .coach .progress i.ok { background: var(--cloud); }
+    .coach .feedback { font-size: 14px; min-height: 1.3em; margin-top: 8px; color: var(--cloud); font-weight: 700; }
+    .speed { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .speed button { border: 1px solid rgba(255,255,255,.75); background: rgba(255,255,255,.45); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer;
+      -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(62,53,40,.06); }
+    .speed button.on { background: rgba(139,117,147,.85); border-color: rgba(255,255,255,.4); color: #fff; }
+    .card .ok-badge { position: absolute; top: 10px; right: 12px; font-size: 22px; opacity: 0; transition: opacity .2s; }
+    .card .ok-badge.show { opacity: 1; }
+
+    /* ---------- Écrans texte (configuration, réglages) ---------- */
+    /* Écrans texte : grand panneau de verre qui floute le carnet derrière */
+    .screen { position: absolute; inset: 0; background: rgba(248,243,235,.62); -webkit-backdrop-filter: blur(28px) saturate(140%); backdrop-filter: blur(28px) saturate(140%);
+      overflow-y: auto; padding: 34px 22px 24px 46px; z-index: 5; }
+    .screen h1 { font-family: var(--serif); font-size: 30px; font-weight: 600; letter-spacing: -.01em; }
+    .screen .lead { color: #6B6152; line-height: 1.5; margin-top: 8px; font-size: 15px; }
+    .safe-moment { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: #EFE6D8; color: #7A6A50; padding: 5px 10px; border-radius: 999px; margin-bottom: 14px; }
+    .how { display: grid; gap: 10px; margin: 18px 0; }
+    .how div { display: flex; gap: 12px; align-items: center; background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.75); border-radius: 16px; padding: 10px 12px; font-size: 14px; line-height: 1.4; }
+    .how .sw { width: 46px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; }
+    .how .sw svg { width: 22px; height: 22px; }
+    .field { display: grid; gap: 6px; margin-top: 16px; }
+    .field .lbl { font-weight: 700; font-size: 14px; }
+    .field input[type=text] { border: 1.5px solid rgba(255,255,255,.85); border-radius: 14px; padding: 13px 14px; font: inherit; outline: none; background: rgba(255,255,255,.6); user-select: text; -webkit-user-select: text; }
+    .field input:focus { border-color: var(--cloud); }
+    .hint { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .error { font-size: 14px; color: #A3423B; min-height: 1.2em; margin-top: 8px; }
+    .radio { display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border: 1.5px solid rgba(255,255,255,.85); border-radius: 14px; font-size: 14px; line-height: 1.35; background: rgba(255,255,255,.5); cursor: pointer; }
+    .radio:has(input:checked) { border-color: var(--cloud); background: rgba(226,216,237,.7); }
+    .radio input { accent-color: var(--cloud); margin-top: 2px; }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.4; margin-top: 14px; }
+    .check input { width: 20px; height: 20px; accent-color: var(--cloud); flex-shrink: 0; }
+    /* Boutons en verre : le principal reste foncé pour le contraste */
+    .btn { width: 100%; border: 1px solid rgba(255,255,255,.25); border-radius: 16px; padding: 15px; font: inherit; font-weight: 700; cursor: pointer;
+      background: rgba(62,53,40,.86); color: #fff; margin-top: 18px;
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 8px 20px rgba(62,53,40,.18); }
+    .btn.soft { background: rgba(255,255,255,.5); border-color: rgba(255,255,255,.85); color: var(--ink); margin-top: 8px; box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 4px 14px rgba(62,53,40,.08); }
+    .btn.danger { background: rgba(246,222,218,.65); border-color: rgba(255,255,255,.8); color: #A3423B; box-shadow: 0 4px 14px rgba(163,66,59,.1); }
+    .btn:active, .speed button:active { transform: scale(.98); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .screen h3 { font-size: 12px; margin: 22px 0 8px; color: #7A6A50; text-transform: uppercase; letter-spacing: .07em; }
+    .info { background: rgba(255,255,255,.55); border: 1px solid rgba(255,255,255,.8); border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.5; }
+    .proto-tag { text-align: center; font-size: 11px; color: var(--muted); margin-top: 18px; }
+
+    /* ---------- Version sans flou (navigateurs anciens / téléphones qui ne le supportent pas) ----------
+     * Les cartes reprennent leurs couleurs pleines : toujours lisibles et reconnaissables. */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .card.heart { background: var(--heart-bg); } .card.star { background: var(--star-bg); } .card.cloud { background: var(--cloud-bg); }
+      .screen { background: var(--paper); }
+      .coach, .speed button, .btn.soft, .info, .how div, .radio, .field input[type=text] { background: #fff; }
+    }
+  </style>
+</head>
+<body>
+<div class="phone">
+  <div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <!-- Trombone métallique (pur décor) -->
+  <svg class="clip" viewBox="0 0 30 92" aria-hidden="true">
+    <defs>
+      <linearGradient id="metal" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#8E949C"/><stop offset=".45" stop-color="#E9ECEF"/><stop offset=".7" stop-color="#B5BAC1"/><stop offset="1" stop-color="#7D838B"/>
+      </linearGradient>
+    </defs>
+    <path d="M9 22 V72 a8 8 0 0 0 16 0 V14 a6 6 0 0 0 -12 0 V64 a2.5 2.5 0 0 0 5 0 V24"
+          fill="none" stroke="url(#metal)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <span class="tab t1"></span><span class="tab t2"></span>
+
+  <!-- ==================== LE CARNET (écran discret, sans texte) ==================== -->
+  <div class="binding" id="binding" aria-hidden="true"><i></i><i></i><i id="sentDot"></i><i></i><i></i><i></i></div>
+
+  <div class="coach hidden" id="coach">
+    <b class="tag">Entraînement — rien n'est envoyé</b>
+    <p id="coachText">Touche <b>deux fois</b> le nuage, rapidement.</p>
+    <div class="progress"><i></i><i></i><i></i></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="speed" id="speed"></div>
+  </div>
+
+  <div class="cards">
+    <button class="card heart" id="heart" aria-label="Cœur">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" style="color:var(--heart)" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 5.3 3 1.7-1.9 3.2-3 5.3-3 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>
+    </button>
+    <button class="card star" id="star" aria-label="Étoile">
+      <svg viewBox="0 0 24 24"><path fill="currentColor" style="color:var(--star)" d="M12 2.5l2.9 6 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6L2.5 9.3l6.6-.8z"/></svg>
+    </button>
+    <button class="card cloud" id="cloud" aria-label="Nuage">
+      <span class="ok-badge" id="okBadge">✓</span>
+      <svg viewBox="0 0 24 24"><path fill="currentColor" style="color:var(--cloud)" d="M7 19a5 5 0 0 1-.6-10A6.5 6.5 0 0 1 18.8 9.6 4.7 4.7 0 0 1 18 19z"/></svg>
+    </button>
+  </div>
+
+  <!-- ==================== CONFIGURATION (moment sûr) ==================== -->
+  <section class="screen hidden" id="setup">
+    <span class="safe-moment">À faire dans un moment sûr</span>
+    <h1>Les petits riens</h1>
+    <p class="lead">Ce carnet ressemble à un journal de bien-être. Si tu es <b>agressée physiquement</b> et que tu peux prendre ton téléphone, un seul geste suffit pour prévenir la cellule d'écoute, <b>sans rien écrire, sans son, sans vibration</b>.</p>
+    <div class="how">
+      <div><span class="sw" style="background:var(--cloud-bg)"><svg viewBox="0 0 24 24"><path fill="#8B7593" d="M7 19a5 5 0 0 1-.6-10A6.5 6.5 0 0 1 18.8 9.6 4.7 4.7 0 0 1 18 19z"/></svg></span><span><b>Touche deux fois le nuage</b> → alerte envoyée. L'écran ne change pas.</span></div>
+      <div><span class="sw" style="background:var(--heart-bg)"><svg viewBox="0 0 24 24"><path fill="#C46B62" d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.1 5.3 3 1.7-1.9 3.2-3 5.3-3 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg></span><span>Erreur ? <b>Touche deux fois le cœur</b> dans les 30 secondes pour annuler.</span></div>
+      <div><span class="sw" style="background:#EFE6D8"><span style="display:flex;gap:4px"><i style="width:7px;height:7px;border-radius:50%;background:#DCD2C2"></i><i style="width:7px;height:7px;border-radius:50%;background:#B7A993"></i><i style="width:7px;height:7px;border-radius:50%;background:#DCD2C2"></i></span></span><span>Le <b>3ᵉ trou de la reliure fonce un peu</b> : c'est ton signe que l'alerte est partie.</span></div>
+    </div>
+    <div id="identityBlock">
+      <div class="field">
+        <span class="lbl">NPI (fictif pour la démo)</span>
+        <input id="npi" type="text" autocomplete="off" placeholder="FICT-123456">
+        <span class="hint">⚠ Prototype : n'entre jamais ton vrai NPI.</span>
+      </div>
+      <button class="btn soft" id="genNpi" type="button">Générer un NPI fictif</button>
+      <div class="field">
+        <span class="lbl">Canal sûr : comment la cellule peut te recontacter sans danger</span>
+        <div id="channels" style="display:grid;gap:8px"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="consent"> J'accepte que mon identifiant et mon canal sûr soient transmis <b>uniquement</b> si je déclenche une alerte.</label>
+    </div>
+    <p class="error" id="setupError"></p>
+    <button class="btn" id="setupNext">M'entraîner au geste</button>
+    <p class="proto-tag">Prototype HACK4HER 2026 — données fictives, aucun secours réel</p>
+  </section>
+
+  <!-- ==================== RÉGLAGES SECRETS (appui long 3 s sur la reliure) ==================== -->
+  <section class="screen hidden" id="settings">
+    <h1>Réglages</h1>
+    <p class="lead">Visible seulement après un appui long sur la reliure.</p>
+    <h3>Vitesse du double appui</h3>
+    <div class="speed" id="speed2"></div>
+    <h3>Canal sûr convenu</h3>
+    <div class="info" id="channelInfo"></div>
+    <h3>Geste</h3>
+    <button class="btn soft" id="retrain">Refaire l'entraînement</button>
+    <h3>Sécurité</h3>
+    <button class="btn danger" id="wipe">Tout effacer de ce téléphone</button>
+    <button class="btn" id="closeSettings">Fermer</button>
+  </section>
+</div>
+
+<script src="shared.js"></script>
+<script>
+/* ============================================================================
+ * Les petits riens — porte d'entrée "agression physique / danger immédiat"
+ * Geste : deux appuis rapides sur le nuage. Pas de texte, pas de son,
+ * pas de vibration, écran inchangé.
+ * ==========================================================================*/
+const $ = (id) => document.getElementById(id);
+let mode = 'normal';           // 'normal' | 'training'
+let trainingCount = 0;
+const lastTap = { cloud: 0, heart: 0, star: 0 };
+
+/* ---------- Démarrage ---------- */
+function start() {
+  const c = Mimi.getConfig();
+  if (!Mimi.hasIdentity()) return showSetup();
+  if (!c.carnetTrained) return startTraining();
+  showNotebook();
+}
+
+/* =================== CONFIGURATION =================== */
+$('channels').innerHTML = Object.entries(Mimi.SAFE_CHANNELS).map(([k, label], i) =>
+  `<label class="radio"><input type="radio" name="channel" value="${k}" ${i === 0 ? 'checked' : ''}><span>${label}</span></label>`).join('');
+
+function showSetup() {
+  $('setup').classList.remove('hidden');
+  $('npi').value = ''; $('consent').checked = false; $('setupError').textContent = '';
+}
+$('genNpi').addEventListener('click', () => { $('npi').value = Mimi.generateFakeNpi(); $('setupError').textContent = ''; });
+$('setupNext').addEventListener('click', () => {
+  const err = Mimi.validateNpi($('npi').value) || (!$('consent').checked ? 'Coche la case de consentement pour continuer.' : null);
+  $('setupError').textContent = err || '';
+  if (err) return;
+  Mimi.saveConfig({ npi: $('npi').value, consent: true, channel: document.querySelector('input[name=channel]:checked').value });
+  $('npi').value = '';
+  $('setup').classList.add('hidden');
+  startTraining();
+});
+
+/* =================== ENTRAÎNEMENT (démonstration visuelle) =================== */
+function renderSpeed(containerId) {
+  const current = Mimi.getConfig().tapDelay || 'normal';
+  const labels = { rapide: 'Rapide', normal: 'Normal', lent: 'Lent' };
+  $(containerId).innerHTML = Object.keys(Mimi.TAP_DELAYS).map((k) =>
+    `<button type="button" data-speed="${k}" class="${k === current ? 'on' : ''}">${labels[k]}</button>`).join('');
+  $(containerId).querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
+    Mimi.saveConfig({ tapDelay: b.dataset.speed });
+    renderSpeed(containerId);
+  }));
+}
+
+function startTraining() {
+  mode = 'training'; trainingCount = 0;
+  $('coach').classList.remove('hidden');
+  $('coachText').innerHTML = 'Touche <b>deux fois</b> le nuage, rapidement. Réussis 3 fois.';
+  $('feedback').textContent = '';
+  renderSpeed('speed');
+  updateProgress();
+  refreshSentDot();
+}
+function updateProgress() {
+  document.querySelectorAll('.coach .progress i').forEach((el, i) => el.classList.toggle('ok', i < trainingCount));
+}
+function trainingSuccess() {
+  trainingCount++;
+  updateProgress();
+  $('okBadge').classList.add('show'); setTimeout(() => $('okBadge').classList.remove('show'), 600);
+  if (trainingCount >= 3) {
+    $('feedback').textContent = 'Bravo ! Tu connais le geste. Le carnet passe en mode discret…';
+    Mimi.saveConfig({ carnetTrained: true });
+    setTimeout(showNotebook, 1800);
+  } else {
+    $('feedback').textContent = '✓ Bien ! Encore ' + (3 - trainingCount) + ' fois.';
+  }
+}
+
+/* =================== LE CARNET =================== */
+function showNotebook() {
+  mode = 'normal';
+  $('coach').classList.add('hidden');
+  $('setup').classList.add('hidden');
+  $('settings').classList.add('hidden');
+  refreshSentDot();
+}
+
+/** Indice discret : le 3e trou de la reliure fonce si une alerte carnet est en cours. */
+function refreshSentDot() {
+  const active = mode === 'normal' && Mimi.getActiveAlert('carnet');
+  $('sentDot').classList.toggle('sent', !!active);
+}
+
+/* ---------- Gestion des appuis sur les cartes ---------- */
+let singleTapHint = null;
+function handleTap(name, el) {
+  // Retour visuel identique pour tous les appuis : rien ne trahit l'alerte
+  el.classList.add('press'); setTimeout(() => el.classList.remove('press'), 120);
+
+  const now = Date.now();
+  const delay = Mimi.TAP_DELAYS[Mimi.getConfig().tapDelay || 'normal'];
+  const isDouble = Mimi.isDoubleTap(lastTap[name], now, delay);
+  lastTap[name] = isDouble ? 0 : now; // après un double appui, on repart de zéro
+
+  if (mode === 'training') {
+    if (name !== 'cloud') { $('feedback').textContent = 'C\'est le nuage qu\'il faut toucher ☁️'; return; }
+    clearTimeout(singleTapHint);
+    if (isDouble) trainingSuccess();
+    else singleTapHint = setTimeout(() => { $('feedback').textContent = 'Un seul appui détecté : touche deux fois, un peu plus vite (ou choisis « Lent »).'; }, delay + 50);
+    return;
+  }
+
+  if (!isDouble) return;
+  if (name === 'cloud') {
+    // ===== DÉCLENCHEUR : alerte FICTIVE "agression physique" =====
+    // Une seule alerte à la fois : si une alerte carnet est déjà en cours, on n'en recrée pas.
+    if (!Mimi.getActiveAlert('carnet')) Mimi.sendAlert('carnet');
+  } else if (name === 'heart') {
+    // Annulation dans les 30 secondes (fausse manipulation)
+    Mimi.cancelRecentAlert('carnet');
+  }
+  refreshSentDot();
+}
+[['cloud', $('cloud')], ['heart', $('heart')], ['star', $('star')]].forEach(([name, el]) => {
+  el.addEventListener('pointerdown', (e) => { e.preventDefault(); handleTap(name, el); });
+  // Clavier (accessibilité) : Entrée / Espace comptent comme un appui
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTap(name, el); } });
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+});
+
+/* =================== RÉGLAGES SECRETS (appui long 3 s sur la reliure) =================== */
+(function () {
+  const b = $('binding'); let timer = null;
+  b.addEventListener('pointerdown', () => { timer = setTimeout(openSettings, 3000); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => b.addEventListener(ev, () => clearTimeout(timer)));
+})();
+function openSettings() {
+  if (!Mimi.hasIdentity()) return;
+  renderSpeed('speed2');
+  $('channelInfo').textContent = Mimi.SAFE_CHANNELS[Mimi.getConfig().channel] || '—';
+  $('settings').classList.remove('hidden');
+}
+$('closeSettings').addEventListener('click', showNotebook);
+$('retrain').addEventListener('click', () => { $('settings').classList.add('hidden'); startTraining(); });
+$('wipe').addEventListener('click', () => {
+  if (!confirm('Effacer toutes les données de cette appli sur ce téléphone ?')) return;
+  Mimi.wipeDevice(); $('settings').classList.add('hidden'); showSetup();
+});
+
+/* ---------- Réseau : alertes en attente envoyées au retour du réseau ------ */
+window.addEventListener('online', () => Mimi.flushQueue());
+
+/* ---------- Synchronisation (annulation, réinitialisation de la démo…) ---- */
+Mimi.onChange(() => {
+  if (!Mimi.hasIdentity() && $('setup').classList.contains('hidden')) {
+    $('settings').classList.add('hidden'); $('coach').classList.add('hidden'); mode = 'normal'; showSetup();
+  }
+  refreshSentDot();
+});
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+start();
+</script>
+</body>
+</html>

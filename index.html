@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Nom NEUTRE : rien n'évoque "sécurité", "alerte" ou "SOS" -->
+  <title>mimi</title>
+  <meta name="theme-color" content="#FAF8FF">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <!-- iPhone : icône PNG, nom neutre et plein écran une fois ajoutée à l'écran d'accueil -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="mimi">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+  <style>
+    /* ============ mimi — messagerie pastel (maquette de l'équipe) ============ */
+    :root {
+      --bg: #FAF8FF; --l1: #EEE8FA; --l2: #DACEF3; --violet: #7B6197; --ink: #342E46;
+      --muted: #8A8199; --line: #ECE6F7; --white: #FFFFFF; --rose: #B4466E;
+      --font: "DM Sans", ui-rounded, "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: var(--font); color: var(--ink); font-size: 16px; background: var(--bg);
+      -webkit-tap-highlight-color: transparent; display: flex; justify-content: center; align-items: center; }
+    .phone { width: 100%; max-width: 440px; height: 100dvh; background: var(--bg); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+    /* Sur grand écran (démo sur ordinateur) : cadre de téléphone */
+    @media (min-width: 700px) and (min-height: 760px) {
+      body { background: radial-gradient(circle at 30% 20%, #F1EBFB, #E4DCF3); }
+      .phone { width: 390px; height: 800px; border-radius: 44px; border: 10px solid #2C2638; box-shadow: 0 30px 80px rgba(52,46,70,.28); }
+    }
+    .hidden { display: none !important; }
+
+    /* ---------- Barre d'état décorative ---------- */
+    .status { display: flex; justify-content: space-between; padding: 10px 22px 2px; font-size: 13px; font-weight: 700; }
+
+    /* ---------- En-tête ---------- */
+    header { display: flex; align-items: center; gap: 10px; padding: 8px 14px 12px; }
+    header .icon-btn { width: 36px; height: 36px; border: none; background: none; color: var(--ink); font-size: 22px; border-radius: 50%; }
+    header .title { flex: 1; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
+    header h1 { font-size: 24px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+    header p { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    /* ---------- Messages ---------- */
+    #messages { flex: 1; overflow-y: auto; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+    .welcome { background: var(--l1); border-radius: 24px; padding: 20px 18px 14px; position: relative; overflow: hidden; min-height: 150px; margin-bottom: 4px; }
+    .welcome h2 { font-size: 26px; font-weight: 700; letter-spacing: -.02em; }
+    .welcome p { font-size: 15px; color: #5B5170; margin-top: 4px; max-width: 55%; }
+    .welcome small { display: block; font-size: 11px; color: var(--muted); margin-top: 28px; }
+    .welcome svg { position: absolute; right: 6px; bottom: 6px; width: 150px; }
+    .day { align-self: center; font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin: 6px 0; }
+
+    .msg { max-width: 78%; padding: 11px 15px; border-radius: 20px; line-height: 1.4; font-size: 15px; word-wrap: break-word;
+      animation: pop .22s ease-out; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    .msg time { display: block; font-size: 10.5px; opacity: .5; margin-top: 3px; text-align: right; }
+    .msg.mimi { background: var(--white); align-self: flex-start; border-bottom-left-radius: 6px; box-shadow: 0 1px 2px rgba(52,46,70,.06); }
+    .msg.me { background: var(--l2); align-self: flex-end; border-bottom-right-radius: 6px; }
+    .typing { align-self: flex-start; background: var(--white); padding: 13px 16px; border-radius: 20px; display: flex; gap: 5px; }
+    .typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--l2); animation: bounce 1s infinite; }
+    .typing span:nth-child(2) { animation-delay: .15s; } .typing span:nth-child(3) { animation-delay: .3s; }
+    @keyframes pop { from { transform: translateY(4px); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-4px); background: var(--violet); } }
+
+    /* ---------- Saisie ---------- */
+    form.composer { display: flex; align-items: center; gap: 8px; margin: 0 12px calc(12px + env(safe-area-inset-bottom)); padding: 6px 6px 6px 14px;
+      background: var(--white); border-radius: 999px; box-shadow: 0 2px 10px rgba(52,46,70,.07); }
+    .composer .plus { border: none; background: none; font-size: 22px; color: var(--muted); }
+    .composer input { flex: 1; border: none; outline: none; font: inherit; color: var(--ink); background: transparent; padding: 8px 0; min-width: 0; }
+    .composer .send { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--violet); color: #fff; font-size: 18px; cursor: pointer; flex-shrink: 0; }
+    .home-bar { height: 5px; width: 120px; background: var(--ink); border-radius: 3px; margin: 0 auto 8px; opacity: .85; }
+
+    /* ---------- Configuration (premier lancement) ---------- */
+    .onboarding { flex: 1; overflow-y: auto; padding: 8px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+    .ob-card { background: var(--white); border-radius: 26px; padding: 22px 20px; box-shadow: 0 6px 24px rgba(123,97,151,.1); }
+    .ob-card h2 { font-size: 24px; letter-spacing: -.02em; margin-bottom: 8px; }
+    .ob-card > p { color: #5B5170; line-height: 1.5; font-size: 15px; }
+    .safe-moment { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; background: var(--l1); color: var(--violet); padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; }
+    .steps { list-style: none; display: grid; gap: 12px; margin: 16px 0 4px; }
+    .steps li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.4; font-size: 15px; }
+    .steps b.n { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: var(--l1); color: var(--violet); display: grid; place-items: center; font-size: 14px; }
+    .other-door { margin-top: 14px; background: #F8F3EB; border-radius: 16px; padding: 12px 14px; font-size: 14px; line-height: 1.45; }
+    .field { display: grid; gap: 6px; margin-top: 16px; }
+    .field label, .field .lbl { font-weight: 700; font-size: 14px; }
+    .field input[type=text], .field input[type=password] { border: 2px solid var(--line); border-radius: 14px; padding: 13px 14px; font: inherit; outline: none; background: var(--bg); color: var(--ink); }
+    .field input:focus { border-color: var(--violet); }
+    .hint { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .error { font-size: 14px; color: var(--rose); min-height: 1.2em; margin-top: 8px; }
+    .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.4; margin-top: 12px; }
+    .check input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--violet); flex-shrink: 0; }
+    .radio { display: flex; gap: 10px; align-items: flex-start; padding: 11px 12px; border: 2px solid var(--line); border-radius: 14px; font-size: 14px; line-height: 1.35; cursor: pointer; }
+    .radio:has(input:checked) { border-color: var(--violet); background: var(--l1); }
+    .radio input { accent-color: var(--violet); margin-top: 2px; }
+    .btn { width: 100%; border: none; border-radius: 16px; padding: 15px; font: inherit; font-weight: 700; cursor: pointer; background: var(--violet); color: #fff; margin-top: 18px; }
+    .btn.soft { background: var(--l1); color: var(--violet); margin-top: 8px; }
+    .btn.danger { background: #FBE7EE; color: var(--rose); }
+    .dots { display: flex; justify-content: center; gap: 6px; }
+    .dots i { width: 7px; height: 7px; border-radius: 4px; background: var(--l2); transition: width .2s; } .dots i.on { background: var(--violet); width: 22px; }
+    .proto-tag { text-align: center; font-size: 11px; color: var(--muted); }
+
+    /* ---------- Réglages secrets ---------- */
+    .sheet { position: absolute; inset: 0; background: rgba(52,46,70,.35); display: flex; align-items: flex-end; z-index: 10; }
+    .sheet .ob-card { width: 100%; border-radius: 28px 28px 0 0; max-height: 92%; overflow-y: auto; }
+    .sheet h3 { font-size: 12px; margin: 20px 0 8px; color: var(--violet); text-transform: uppercase; letter-spacing: .07em; }
+    .info { background: var(--bg); border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="phone">
+  <div class="status" aria-hidden="true"><span id="clock">9:41</span><span>●●● ▮</span></div>
+
+  <!-- ==================== 1. CONFIGURATION (moment sûr) ==================== -->
+  <section id="onboarding" class="onboarding hidden">
+    <div class="ob-card" data-step="1">
+      <span class="safe-moment">À faire dans un moment sûr</span>
+      <h2>Coucou, toi.</h2>
+      <p>mimi ressemble à un simple chat de douceur. En réalité, elle peut <b>prévenir discrètement la cellule d'écoute</b> si quelqu'un surveille ton écran ou te harcèle.</p>
+      <ul class="steps">
+        <li><b class="n">1</b><span>Tu choisis une <b>phrase secrète</b> anodine, par exemple « Je vais promener le chat ».</span></li>
+        <li><b class="n">2</b><span>Si tu as besoin d'aide, tu l'écris à mimi. <b>Aucun signe d'alerte</b> n'apparaît.</span></li>
+        <li><b class="n">3</b><span>mimi répond <b>« Super ! Fais attention à toi 🌸 »</b> : l'alerte est partie.</span></li>
+        <li><b class="n">↩</b><span>Erreur ? Écris <b>« oublie »</b> dans les 30 secondes.</span></li>
+        <li><b class="n">✋</b><span>Appui long sur un message collé dans le chat : il est <b>gardé comme preuve</b>, sans rien changer à l'écran.</span></li>
+      </ul>
+      <div class="other-door">📒 <b>Danger physique ?</b> L'app <b>« Les petits riens »</b> déclenche une alerte en <b>touchant deux fois le nuage</b>, sans rien écrire.</div>
+      <button class="btn" data-next="2">J'ai compris</button>
+    </div>
+
+    <div class="ob-card hidden" data-step="2">
+      <span class="safe-moment">Étape 1 · Choisir &amp; répéter</span>
+      <h2>Ta phrase secrète 🔑</h2>
+      <p>Un mot ou une petite phrase que tu peux écrire naturellement, mais pas tous les jours.</p>
+      <div class="field">
+        <label for="secret">Phrase secrète</label>
+        <input id="secret" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ex. : promener le chat">
+        <label class="check" style="margin-top:2px"><input type="checkbox" id="showSecret"> Afficher</label>
+        <span class="hint">Astuce : répète-la 2 ou 3 fois dans ta tête pour la retenir.</span>
+      </div>
+      <p class="error" id="secretError"></p>
+      <button class="btn" id="toStep3">Continuer</button>
+    </div>
+
+    <div class="ob-card hidden" data-step="3">
+      <span class="safe-moment">Étape 2 · Ce que la cellule saura</span>
+      <h2>Toi, et comment te joindre 🪪</h2>
+      <p>Envoyé <b>uniquement si tu déclenches une alerte</b>. La cellule voit ton identifiant masqué.</p>
+      <div class="field">
+        <label for="npi">NPI (fictif pour la démo)</label>
+        <input id="npi" type="text" autocomplete="off" placeholder="FICT-123456">
+        <span class="hint">⚠ Prototype : n'entre jamais ton vrai NPI.</span>
+      </div>
+      <button class="btn soft" id="genNpi" type="button">Générer un NPI fictif</button>
+      <div class="field">
+        <span class="lbl">Canal sûr : comment la cellule peut te recontacter sans danger</span>
+        <div id="channels" style="display:grid;gap:8px"></div>
+        <span class="hint">La cellule ne t'appellera jamais par défaut.</span>
+      </div>
+      <label class="check"><input type="checkbox" id="consent"> J'accepte que mon identifiant, mon canal sûr et les messages que je mets de côté soient transmis <b>uniquement</b> si je déclenche une alerte.</label>
+      <p class="error" id="npiError"></p>
+      <button class="btn" id="finish">Commencer</button>
+    </div>
+
+    <div class="dots"><i class="on"></i><i></i><i></i></div>
+    <p class="proto-tag">Prototype HACK4HER 2026 — données fictives, aucun secours réel</p>
+  </section>
+
+  <!-- ==================== 2. LE CHAT ==================== -->
+  <section id="chat" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <header>
+      <button class="icon-btn" aria-label="Retour">‹</button>
+      <!-- Appui long de 3 s sur le titre = réglages secrets -->
+      <div class="title" id="title"><h1>mimi</h1><p>Ton petit coin de douceur</p></div>
+      <button class="icon-btn" aria-label="Plus">⋯</button>
+    </header>
+
+    <div id="messages" aria-live="polite"></div>
+
+    <form class="composer" id="composer" autocomplete="off">
+      <button type="button" class="plus" aria-label="Ajouter">+</button>
+      <input id="input" placeholder="Écrire à Mimi…" aria-label="Message" enterkeyhint="send">
+      <button class="send" aria-label="Envoyer">↑</button>
+    </form>
+  </section>
+  <div class="home-bar" aria-hidden="true"></div>
+
+  <!-- ==================== 3. RÉGLAGES SECRETS ==================== -->
+  <div class="sheet hidden" id="settings">
+    <div class="ob-card">
+      <h2>Réglages 🔒</h2>
+      <p class="hint">Visible seulement après un appui long sur « mimi ».</p>
+
+      <h3>Phrase secrète</h3>
+      <div class="field" style="margin-top:0"><input id="newSecret" type="password" autocomplete="off" placeholder="Nouvelle phrase secrète"></div>
+      <p class="error" id="newSecretError"></p>
+      <button class="btn soft" id="saveSecret">Changer la phrase secrète</button>
+
+      <h3>Coffre</h3>
+      <div class="info" id="vaultInfo"></div>
+
+      <h3>Canal sûr convenu</h3>
+      <div class="info" id="channelInfo"></div>
+
+      <h3>Besoin d'aide ?</h3>
+      <div class="info">Cellule d'écoute (fictive) : <b>00 00 00 00</b><br>
+        <span class="hint">Version réelle : numéros officiels vérifiés par les institutions.</span></div>
+
+      <h3>Démo</h3>
+      <button class="btn soft" id="loadScenario">Charger un scénario fictif</button>
+
+      <h3>Sécurité</h3>
+      <button class="btn danger" id="wipe">Tout effacer de ce téléphone</button>
+      <button class="btn soft" id="closeSettings">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script src="bot.js"></script>
+<script>
+/* ============================================================================
+ * mimi — logique de l'app (porte d'entrée "cyberharcèlement / surveillance")
+ * ==========================================================================*/
+const $ = (id) => document.getElementById(id);
+const messagesEl = $('messages');
+
+/* Horloge décorative de la barre d'état */
+function tick() { const d = new Date(); $('clock').textContent = d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0'); }
+tick(); setInterval(tick, 30000);
+
+/* ---------- Démarrage ---------- */
+function start() {
+  const c = Mimi.getConfig();
+  if (c && c.secret && Mimi.hasIdentity()) showChat(); else showOnboarding();
+}
+
+/* =================== CONFIGURATION =================== */
+// Liste des canaux sûrs (radio)
+$('channels').innerHTML = Object.entries(Mimi.SAFE_CHANNELS).map(([k, label], i) =>
+  `<label class="radio"><input type="radio" name="channel" value="${k}" ${i === 0 ? 'checked' : ''}><span>${label}</span></label>`).join('');
+
+function showOnboarding() {
+  $('chat').classList.add('hidden');
+  $('settings').classList.add('hidden');
+  $('onboarding').classList.remove('hidden');
+  $('secret').value = ''; $('npi').value = ''; $('consent').checked = false;
+  $('secretError').textContent = ''; $('npiError').textContent = '';
+  goStep(1);
+}
+function goStep(n) {
+  document.querySelectorAll('[data-step]').forEach((c) => c.classList.toggle('hidden', c.dataset.step != n));
+  document.querySelectorAll('.dots i').forEach((d, i) => d.classList.toggle('on', i === n - 1));
+}
+document.querySelector('[data-next="2"]').addEventListener('click', () => goStep(2));
+$('showSecret').addEventListener('change', (e) => { $('secret').type = e.target.checked ? 'text' : 'password'; });
+
+$('toStep3').addEventListener('click', () => {
+  const err = Mimi.validateSecret($('secret').value);
+  $('secretError').textContent = err || '';
+  if (err) return;
+  // Identité déjà renseignée depuis l'app carnet ? On ne la redemande pas.
+  if (Mimi.hasIdentity()) { Mimi.saveConfig({ secret: $('secret').value }); $('secret').value = ''; showChat(); return; }
+  goStep(3);
+});
+$('genNpi').addEventListener('click', () => { $('npi').value = Mimi.generateFakeNpi(); $('npiError').textContent = ''; });
+$('finish').addEventListener('click', () => {
+  const err = Mimi.validateNpi($('npi').value) || (!$('consent').checked ? 'Coche la case de consentement pour continuer.' : null);
+  $('npiError').textContent = err || '';
+  if (err) return;
+  Mimi.saveConfig({
+    secret: $('secret').value, npi: $('npi').value, consent: true,
+    channel: document.querySelector('input[name=channel]:checked').value
+  });
+  $('secret').value = ''; $('npi').value = ''; // plus rien à l'écran
+  showChat();
+});
+
+/* =================== LE CHAT =================== */
+const WELCOME = `
+  <div class="welcome">
+    <h2>Coucou, toi.</h2>
+    <p>On papote un peu ?</p>
+    <small>Les petits riens font du bien.</small>
+    <svg viewBox="0 0 160 110" aria-hidden="true">
+      <ellipse cx="82" cy="92" rx="66" ry="14" fill="#F3DE9A"/>
+      <ellipse cx="82" cy="86" rx="60" ry="12" fill="#F7E7B0"/>
+      <path d="M38 84c0-22 20-36 46-36s44 12 44 30c0 6-4 8-10 8H48c-6 0-10-1-10-2z" fill="#B9A6DA"/>
+      <path d="M118 80c14 2 22-6 18-16" stroke="#B9A6DA" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <circle cx="56" cy="58" r="20" fill="#C6B5E3"/>
+      <path d="M40 46l2-16 12 10zM72 46l-2-16-12 10z" fill="#C6B5E3"/>
+      <path d="M47 58q3 3 6 0M60 58q3 3 6 0" stroke="#4B3F63" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <circle cx="56.5" cy="64" r="1.6" fill="#E58FA6"/>
+      <text x="96" y="40" font-size="12" fill="#7B6197" font-family="sans-serif">z z</text>
+    </svg>
+  </div>`;
+
+function showChat() {
+  $('onboarding').classList.add('hidden');
+  $('chat').classList.remove('hidden');
+  messagesEl.innerHTML = WELCOME + '<div class="day">Aujourd\'hui · ' + Mimi.formatTime(Date.now()) + '</div>';
+  const history = Mimi.getChat();
+  if (history.length === 0) addMessage('mimi', 'Tu as pu prendre une petite pause aujourd\'hui ?');
+  else history.forEach(renderMessage);
+  scrollDown();
+}
+
+function addMessage(from, text) {
+  const m = { from, text, at: Date.now() };
+  const h = Mimi.getChat(); h.push(m); Mimi.saveChat(h);
+  renderMessage(m); scrollDown();
+}
+function renderMessage(m) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + m.from;
+  div.innerHTML = Mimi.escapeHtml(m.text) + '<time>' + Mimi.formatTime(m.at) + '</time>'; // escapeHtml = anti-injection
+  div.dataset.text = m.text;
+  if (m.from === 'me') attachLongPress(div);
+  messagesEl.appendChild(div);
+}
+function scrollDown() { messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+/* ---------- ENVOI D'UN MESSAGE : C'EST ICI QU'EST LE DÉCLENCHEUR ---------- */
+$('composer').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = $('input').value.trim();
+  if (!text) return;
+  $('input').value = '';
+  addMessage('me', text);
+
+  const c = Mimi.getConfig();
+  let answer;
+  if (Mimi.containsSecret(text, c.secret)) {
+    // 1) Phrase secrète → alerte FICTIVE. Aucun son, aucune vibration,
+    //    aucun signe à l'écran : mimi répond juste la phrase convenue.
+    Mimi.sendAlert('mimi');
+    answer = MimiBot.CONFIRMATION_PHRASE;
+  } else if (Mimi.isCancel(text) && Mimi.cancelRecentAlert('mimi')) {
+    // 2) "oublie" dans les 30 s → annulation.
+    answer = MimiBot.CANCEL_REPLY;
+  } else {
+    // 3) Conversation normale.
+    answer = MimiBot.reply(text);
+  }
+  mimiReplies(answer);
+});
+
+/* mimi répond toujours dans l'ordre des messages (file de réponses) */
+let replyChain = Promise.resolve();
+function mimiReplies(text) {
+  replyChain = replyChain.then(() => new Promise((done) => {
+    const t = document.createElement('div');
+    t.className = 'typing'; t.innerHTML = '<span></span><span></span><span></span>';
+    messagesEl.appendChild(t); scrollDown();
+    setTimeout(() => { t.remove(); addMessage('mimi', text); done(); }, 700 + Math.random() * 700);
+  }));
+}
+
+/* ---------- Appui long sur un message = mise au coffre (invisible) -------- */
+function attachLongPress(el) {
+  let timer = null, startY = 0;
+  el.addEventListener('pointerdown', (e) => {
+    startY = e.clientY;
+    timer = setTimeout(() => { Mimi.addToVault(el.dataset.text); timer = null; }, 650);
+  });
+  const cancel = () => { clearTimeout(timer); timer = null; };
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => el.addEventListener(ev, cancel));
+  el.addEventListener('pointermove', (e) => { if (Math.abs(e.clientY - startY) > 8) cancel(); }); // on fait défiler : pas d'appui long
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+/* =================== RÉGLAGES SECRETS (appui long 3 s sur "mimi") =================== */
+(function () {
+  const t = $('title'); let timer = null;
+  t.addEventListener('pointerdown', () => { timer = setTimeout(openSettings, 3000); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => t.addEventListener(ev, () => clearTimeout(timer)));
+  t.addEventListener('contextmenu', (e) => e.preventDefault());
+})();
+
+function openSettings() {
+  const n = Mimi.getVault().length, c = Mimi.getConfig();
+  $('vaultInfo').innerHTML = n === 0 ? 'Ton coffre est vide.'
+    : `<b>${n}</b> message(s) mis de côté. Transmis avec ta prochaine alerte (ou ajoutés à l'alerte en cours).`;
+  $('channelInfo').textContent = Mimi.SAFE_CHANNELS[c.channel] || '—';
+  $('newSecret').value = ''; $('newSecretError').textContent = '';
+  $('settings').classList.remove('hidden');
+}
+$('closeSettings').addEventListener('click', () => $('settings').classList.add('hidden'));
+$('saveSecret').addEventListener('click', () => {
+  const err = Mimi.validateSecret($('newSecret').value);
+  $('newSecretError').textContent = err || 'Phrase secrète modifiée ✔';
+  if (!err) { Mimi.saveConfig({ secret: $('newSecret').value }); $('newSecret').value = ''; }
+});
+$('wipe').addEventListener('click', () => {
+  if (!confirm('Effacer toutes les données de cette appli sur ce téléphone ?')) return;
+  Mimi.wipeDevice(); showOnboarding();
+});
+
+/* ---------- Scénario de démo : messages 100 % INVENTÉS ---------- */
+const SCENARIO_FICTIF = [
+  'Regarde ce qu\'il m\'a écrit : « Je vois tout ce que tu fais sur ton téléphone. Réponds-moi. »',
+  'Et : « Tu étais à la bibliothèque à 15h, je sais où tu es. »',
+  'Encore lui : « Si tu parles à quelqu\'un, tu vas le regretter. »'
+];
+$('loadScenario').addEventListener('click', () => {
+  $('settings').classList.add('hidden');
+  SCENARIO_FICTIF.forEach((t, i) => setTimeout(() => addMessage('me', t), i * 400));
+  setTimeout(() => mimiReplies(MimiBot.reply('regarde ce message')), SCENARIO_FICTIF.length * 400);
+});
+
+/* ---------- Réseau : les alertes en attente partent au retour du réseau --- */
+window.addEventListener('online', () => Mimi.flushQueue());
+
+/* ---------- Démo : réinitialisation depuis la cellule → retour à l'accueil */
+Mimi.onChange(() => {
+  const c = Mimi.getConfig();
+  if ((!c || !c.secret) && $('onboarding').classList.contains('hidden')) showOnboarding();
+});
+
+/* ---------- PWA : installable + hors ligne ---------- */
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+start();
+</script>
+</body>
+</html>

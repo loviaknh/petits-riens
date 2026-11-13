@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cellule — supervision (fictive)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============ Cellule — supervision institutionnelle (maquette) ============ */
+    :root {
+      --navy: #14243D; --navy-2: #1E3354; --bg: #F3F5F9; --white: #FFFFFF; --slate: #58657A;
+      --red: #9B403F; --red-bg: #F8E6E4; --amber-bg: #FBF0D2; --amber: #8A6212;
+      --blue-bg: #E6ECF5; --blue: #2F4C7A; --green-bg: #E3F1EA; --green: #2E6B4E; --grey-bg: #ECEEF2;
+      --line: #E3E7EE; --ink: #14243D; --muted: #7A8597;
+      --font: "Inter", "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--ink); font-size: 14px; }
+    .app { display: grid; grid-template-columns: 228px 1fr; min-height: 100vh; }
+    button { font: inherit; cursor: pointer; }
+
+    /* ---------- Barre latérale ---------- */
+    aside { background: var(--navy); color: #C9D2E0; display: flex; flex-direction: column; padding: 22px 14px; position: sticky; top: 0; height: 100vh; }
+    .brand { display: flex; align-items: center; gap: 10px; color: #fff; padding: 0 8px; }
+    .brand b { font-size: 20px; letter-spacing: -.02em; }
+    .brand-sub { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8392AB; padding: 4px 8px 0 38px; }
+    .nav-title { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #6F7F99; margin: 28px 8px 8px; }
+    nav button { width: 100%; display: flex; align-items: center; gap: 10px; background: none; border: none; color: #C9D2E0; padding: 9px 10px; border-radius: 8px; text-align: left; font-size: 14px; }
+    nav button:hover { background: rgba(255,255,255,.05); }
+    nav button.on { background: var(--navy-2); color: #fff; }
+    nav button .count { margin-left: auto; background: #fff; color: var(--navy); font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 7px; }
+    nav svg { width: 17px; height: 17px; flex-shrink: 0; }
+    .side-foot { margin-top: auto; }
+    .dispo { background: var(--navy-2); border-radius: 10px; padding: 12px; font-size: 12px; line-height: 1.6; color: #A9B5C8; }
+    .dispo b { color: #fff; font-weight: 600; } .dispo b::before { content: "● "; color: #5FC28E; }
+    .demo-tag { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #6F7F99; margin: 14px 8px 8px; }
+    .side-btn { width: 100%; background: none; border: 1px solid #2D4266; color: #A9B5C8; border-radius: 8px; padding: 7px; font-size: 12px; }
+    .side-btn:hover { color: #fff; border-color: #4A6390; }
+
+    /* ---------- Barre du haut ---------- */
+    .topbar { background: var(--white); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 16px; padding: 12px 28px; position: sticky; top: 0; z-index: 3; }
+    .crumb { color: var(--slate); font-size: 13px; flex: 1; }
+    .fict { background: var(--amber-bg); color: var(--amber); font-size: 11px; font-weight: 700; letter-spacing: .06em; padding: 7px 14px; border-radius: 6px; text-transform: uppercase; }
+    .bell { position: relative; background: none; border: none; font-size: 18px; padding: 4px; color: var(--slate); }
+    .bell .dot { position: absolute; top: -2px; right: -4px; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; border-radius: 8px; padding: 0 5px; }
+    .agent { font-size: 13px; line-height: 1.3; } .agent small { display: block; color: var(--muted); font-size: 11px; }
+
+    main { padding: 26px 28px 40px; max-width: 1320px; }
+    .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 20px; }
+    .head h1 { font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+    .head p { color: var(--slate); margin-top: 4px; }
+    .pill-live { background: var(--green-bg); color: var(--green); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+    .pill-live::before { content: "● "; animation: blink 1.6s infinite; } @keyframes blink { 50% { opacity: .3; } }
+
+    /* ---------- Cartes de chiffres ---------- */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    .stat { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+    .stat .l { color: var(--slate); font-size: 13px; } .stat .n { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .stat .n.red { color: var(--red); } .stat small { color: var(--muted); font-size: 11px; }
+
+    /* ---------- Carte d'alerte en vedette ---------- */
+    .focus { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px; box-shadow: 0 1px 0 rgba(20,36,61,.03); }
+    .focus.urgent { border-color: #E5BDB9; box-shadow: 0 0 0 3px #F8E6E4; }
+    .focus.flash { animation: flash 1s ease-in-out 3; } @keyframes flash { 50% { box-shadow: 0 0 0 6px #F3CFCB; } }
+    .focus-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .tag { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 5px; }
+    .t-a_qualifier { background: var(--red-bg); color: var(--red); } .t-en_cours { background: var(--blue-bg); color: var(--blue); }
+    .t-cloturee { background: var(--green-bg); color: var(--green); } .t-annulee { background: var(--grey-bg); color: var(--slate); }
+    .t-urgente { background: var(--red); color: #fff; } .t-haute { background: var(--amber-bg); color: var(--amber); }
+    .t-synth { background: #EEEAF7; color: #5B4A86; }
+    .focus h2 { font-size: 18px; font-weight: 700; margin: 12px 0 6px; letter-spacing: -.01em; }
+    .meta { color: var(--muted); font-size: 12.5px; }
+    .focus-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .btn { border: none; border-radius: 8px; padding: 9px 16px; font-weight: 600; font-size: 13px; }
+    .btn-dark { background: var(--navy); color: #fff; } .btn-dark:hover { background: var(--navy-2); }
+    .btn-light { background: var(--grey-bg); color: var(--ink); } .btn-light:hover { background: #E1E5EC; }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+    .focus-actions .note { margin-left: auto; color: var(--muted); font-size: 12px; }
+    .details { display: grid; grid-template-columns: 1.1fr 1fr; gap: 20px; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kv { background: var(--bg); border-radius: 8px; padding: 9px 12px; }
+    .kv span { display: block; font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+    .kv b { font-weight: 600; font-size: 13px; }
+    .kv.wide { grid-column: 1 / -1; }
+    .sec { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--slate); margin: 16px 0 8px; }
+    .reveal { display: flex; gap: 8px; flex-wrap: wrap; } .reveal select { border: 1px solid var(--line); border-radius: 8px; padding: 7px; font: inherit; font-size: 13px; }
+    .small { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+    .evidence { border-left: 3px solid #8B78B8; background: #FAF9FD; border-radius: 6px; padding: 9px 12px; margin-bottom: 8px; line-height: 1.45; }
+    .evidence small { display: block; color: var(--muted); margin-top: 4px; font-size: 11.5px; }
+    textarea { width: 100%; min-height: 64px; border: 1px solid var(--line); border-radius: 8px; padding: 9px; font: inherit; resize: vertical; }
+    .log { list-style: none; font-size: 12px; border-left: 2px solid var(--line); padding-left: 12px; max-height: 170px; overflow-y: auto; }
+    .log li { margin-bottom: 5px; color: var(--muted); } .log li b { color: var(--ink); font-weight: 600; }
+    .empty-focus { text-align: center; color: var(--muted); padding: 28px 10px; line-height: 1.7; }
+
+    /* ---------- File de traitement + Avant de contacter ---------- */
+    .bottom { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+    .panel { background: var(--white); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+    .panel-h { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; }
+    .panel-h h3 { font-size: 15px; font-weight: 700; } .panel-h small { color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; padding: 8px 18px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #FAFBFC; }
+    td { padding: 11px 18px; border-bottom: 1px solid var(--line); font-size: 13px; }
+    tr.row { cursor: pointer; } tr.row:hover td { background: #F8FAFC; } tr.row.sel td { background: #EEF2F8; }
+    td b { font-weight: 600; }
+    .before { background: #E9EDF4; border: none; padding: 16px 18px; }
+    .before h3 { font-size: 15px; margin-bottom: 12px; }
+    .before label { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.4; margin-bottom: 10px; cursor: pointer; }
+    .before label .num { color: var(--muted); font-size: 11px; width: 16px; flex-shrink: 0; margin-top: 2px; }
+    .before input { accent-color: var(--navy); margin-top: 2px; }
+    .before .small { border-top: 1px solid #D7DDE7; padding-top: 10px; margin-top: 6px; }
+    .foot-note { color: var(--muted); font-size: 12px; margin-top: 18px; }
+
+    /* ---------- Autres vues ---------- */
+    .proto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .proto { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+    .proto h3 { font-size: 16px; margin: 8px 0 4px; } .proto p { color: var(--slate); font-size: 13px; }
+    .proto ol { margin: 14px 0 0 18px; line-height: 1.6; font-size: 13.5px; } .proto ol li { margin-bottom: 6px; }
+    .proto ol li em { color: var(--red); font-style: normal; font-weight: 600; }
+    .team { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .member { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+    .member b { display: block; font-size: 15px; } .member span { color: var(--slate); font-size: 13px; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--blue-bg); color: var(--blue); display: grid; place-items: center; font-weight: 700; margin-bottom: 10px; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; } aside { position: static; height: auto; }
+      .side-foot { display: none; } .stats, .bottom, .details, .proto-grid, .team { grid-template-columns: 1fr; }
+      main, .topbar { padding-left: 16px; padding-right: 16px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- ==================== BARRE LATÉRALE ==================== -->
+  <aside>
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/></svg>
+      <b>cellule</b>
+    </div>
+    <div class="brand-sub">Espace institutionnel</div>
+
+    <div class="nav-title">Pilotage</div>
+    <nav>
+      <button data-view="alertes" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg>Alertes <span class="count" id="navCount">0</span></button>
+      <button data-view="dossiers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h7l2 2h9v10H3z"/></svg>Dossiers</button>
+      <button data-view="equipe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.5-4 3.2-6 6.5-6s6 2 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14c3 0 5 2 5.5 5"/></svg>Équipe de garde</button>
+      <button data-view="journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Journal d'accès</button>
+    </nav>
+    <div class="nav-title">Paramètres</div>
+    <nav>
+      <button data-view="protocoles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Protocoles</button>
+    </nav>
+
+    <div class="side-foot">
+      <div class="dispo"><b>Cellule disponible</b><br>2 agentes de garde<br>Poste universitaire</div>
+      <div class="demo-tag">Démonstration · 24 h</div>
+      <button class="side-btn" id="resetBtn">Réinitialiser la démo</button>
+    </div>
+  </aside>
+
+  <div>
+    <!-- ==================== BARRE DU HAUT ==================== -->
+    <div class="topbar">
+      <div class="crumb">Université / Cellule d'écoute</div>
+      <span class="fict">Données fictives</span>
+      <button class="bell" id="bell" title="Activer / couper le son des alertes">🔕<span class="dot hidden" id="bellDot">0</span></button>
+      <div class="agent">Agente de garde<small>Accès tracé</small></div>
+    </div>
+
+    <main>
+      <!-- ==================== VUE : ALERTES ==================== -->
+      <section id="view-alertes">
+        <div class="head">
+          <div><h1>Vue d'ensemble des alertes</h1><p>Recevoir, qualifier et orienter. Sans exposer l'étudiante.</p></div>
+          <span class="pill-live">Réception active</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><div><div class="l">À traiter</div><div class="n red" id="sTodo">00</div></div><small>Simulation</small></div>
+          <div class="stat"><div><div class="l">Prise en charge</div><div class="n" id="sProg">00</div></div><small>Simulation</small></div>
+          <div class="stat"><div><div class="l">Clôturées aujourd'hui</div><div class="n" id="sDone">00</div></div><small id="sCancel">Simulation</small></div>
+        </div>
+        <div id="focus"></div>
+        <div class="bottom">
+          <div class="panel">
+            <div class="panel-h"><h3>File de traitement</h3><small id="queueCount"></small></div>
+            <table><thead><tr><th>Dossier</th><th>Déclencheur</th><th>Reçue à</th><th>Priorité</th><th>Statut</th></tr></thead><tbody id="queue"></tbody></table>
+          </div>
+          <div class="panel before" id="before"></div>
+        </div>
+        <p class="foot-note">Données de démonstration uniquement. Aucun signalement réel ni preuve personnelle. Aucun service d'urgence n'est connecté.</p>
+      </section>
+
+      <!-- ==================== VUE : DOSSIERS ==================== -->
+      <section id="view-dossiers" class="hidden">
+        <div class="head"><div><h1>Dossiers</h1><p>Toutes les alertes reçues, y compris clôturées et annulées.</p></div></div>
+        <div class="panel"><table><thead><tr><th>Dossier</th><th>Étudiante</th><th>Type</th><th>Reçue le</th><th>Statut</th></tr></thead><tbody id="allRows"></tbody></table></div>
+      </section>
+
+      <!-- ==================== VUE : ÉQUIPE ==================== -->
+      <section id="view-equipe" class="hidden">
+        <div class="head"><div><h1>Équipe de garde</h1><p>Personnes fictives. Chaque accès est nominatif et tracé.</p></div></div>
+        <div class="team">
+          <div class="member"><div class="avatar">A</div><b>Agente A</b><span>De garde · écoute & qualification</span></div>
+          <div class="member"><div class="avatar">B</div><b>Agente B</b><span>De garde · orientation</span></div>
+          <div class="member"><div class="avatar">S</div><b>Superviseure</b><span>Astreinte · décisions sensibles</span></div>
+        </div>
+      </section>
+
+      <!-- ==================== VUE : JOURNAL ==================== -->
+      <section id="view-journal" class="hidden">
+        <div class="head"><div><h1>Journal d'accès</h1><p>Traçabilité : qui a fait quoi, quand. Les révélations d'identité et consultations de preuves y figurent.</p></div></div>
+        <div class="panel"><table><thead><tr><th>Horodatage</th><th>Dossier</th><th>Acteur</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
+      </section>
+
+      <!-- ==================== VUE : PROTOCOLES ==================== -->
+      <section id="view-protocoles" class="hidden">
+        <div class="head"><div><h1>Protocoles</h1><p>Ce qui se passe après l'alerte. Le système affiche ; l'humain décide.</p></div></div>
+        <div class="proto-grid">
+          <div class="proto">
+            <span class="tag t-haute">Priorité haute</span>
+            <h3>Mot de code · mimi</h3>
+            <p>Cyberharcèlement, surveillance d'écran. L'agresseur peut lire le téléphone.</p>
+            <ol>
+              <li>Prendre en charge et lire les éléments transmis (consultation journalisée).</li>
+              <li><em>Ne jamais appeler par défaut</em> : utiliser le <b>canal sûr convenu</b>.</li>
+              <li>Qualifier : surveillance, menaces, chantage ? Danger immédiat ?</li>
+              <li>Orienter : sécurisation des comptes, conservation des preuves, soutien psychologique et juridique, dépôt de plainte si l'étudiante le souhaite.</li>
+              <li>Clôturer avec une note. L'étudiante garde la main sur ses données.</li>
+            </ol>
+          </div>
+          <div class="proto">
+            <span class="tag t-urgente">Urgent</span>
+            <h3>Geste discret · Les petits riens</h3>
+            <p>Agression physique, danger immédiat. L'agresseur est probablement présent.</p>
+            <ol>
+              <li>Prendre en charge <b>dans les 2 minutes</b>.</li>
+              <li><em>Ne pas appeler, ne pas écrire</em> à l'étudiante : cela pourrait aggraver la situation.</li>
+              <li>Déclencher l'escalade prévue avec les services compétents. <em>Dans ce prototype, l'escalade est simulée : aucun appel réel.</em></li>
+              <li>Une fois le danger écarté : recontact via le canal sûr, orientation (soin, écoute, juridique).</li>
+              <li>Clôturer et documenter.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="proto" style="margin-top:16px">
+          <h3>Règles communes</h3>
+          <ol>
+            <li>Une alerte n'est pas une plainte : la plainte reste une décision de l'étudiante.</li>
+            <li>Identité masquée par défaut ; révélation avec motif, tracée au journal.</li>
+            <li>Aucune notification envoyée à l'étudiante : la discrétion n'est pas une garantie d'invisibilité.</li>
+            <li>Toute utilisation réelle exige des vérifications techniques, juridiques et de sécurité, et l'accord des institutions compétentes.</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+/* ============================================================================
+ * Cellule — tableau de bord institutionnel (fictif)
+ * Principe : CONTRÔLE HUMAIN. Le système affiche, l'agente décide.
+ * ==========================================================================*/
+const $ = (id) => document.getElementById(id);
+const AGENT = 'Agente A';
+const STATUS = { a_qualifier: 'À qualifier', en_cours: 'En cours', cloturee: 'Clôturée', annulee: 'Annulée' };
+const PRIORITY = { urgente: 'Urgent', haute: 'Haute' };
+
+/* Liste "Avant de contacter" propre à chaque type d'alerte */
+const CHECKLISTS = {
+  mimi: ['Vérifier le canal sûr convenu.', 'Ne pas appeler par défaut.', 'Suivre le protocole de la cellule (orientation, preuves).'],
+  carnet: ['Prendre en charge dans les 2 minutes.', 'Ne pas appeler ni écrire à l\'étudiante.', 'Déclencher l\'escalade prévue (simulée ici).', 'Recontacter via le canal sûr une fois le danger écarté.']
+};
+
+let view = 'alertes';
+let selectedId = null;
+let showEvidence = false;
+let flashId = null;
+let soundOn = false;
+let known = new Set(Mimi.getDeliveredAlerts().map((a) => a.id));
+const consulted = new Set(); // évite de journaliser 10 fois la même consultation
+
+const pad2 = (n) => String(n).padStart(2, '0');
+function relTime(ts) {
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return 'À l\'instant';
+  if (s < 3600) return 'Il y a ' + Math.floor(s / 60) + ' min';
+  return Mimi.formatTime(ts);
+}
+const esc = Mimi.escapeHtml;
+
+/* =================== NAVIGATION =================== */
+document.querySelectorAll('nav button').forEach((b) => b.addEventListener('click', () => { view = b.dataset.view; render(); }));
+
+/* =================== RENDU GÉNÉRAL =================== */
+function render() {
+  document.querySelectorAll('nav button').forEach((b) => b.classList.toggle('on', b.dataset.view === view));
+  ['alertes', 'dossiers', 'equipe', 'journal', 'protocoles'].forEach((v) => $('view-' + v).classList.toggle('hidden', v !== view));
+
+  const alerts = Mimi.getDeliveredAlerts().slice().reverse(); // plus récentes d'abord
+  const todo = alerts.filter((a) => a.status === 'a_qualifier');
+  const prog = alerts.filter((a) => a.status === 'en_cours');
+  const today = new Date().toDateString();
+  const done = alerts.filter((a) => a.status === 'cloturee' && new Date(a.createdAt).toDateString() === today);
+  const cancelled = alerts.filter((a) => a.status === 'annulee');
+
+  // Nouvelles alertes depuis le dernier rendu → son + clignotement
+  const fresh = alerts.filter((a) => !known.has(a.id));
+  fresh.forEach((a) => known.add(a.id));
+  if (fresh.length) {
+    const urgentFirst = fresh.find((a) => a.priority === 'urgente') || fresh[0];
+    selectedId = urgentFirst.id; flashId = urgentFirst.id; showEvidence = false;
+    beep(urgentFirst.priority === 'urgente'); flashTitle();
+  }
+
+  $('navCount').textContent = todo.length;
+  $('bellDot').textContent = todo.length; $('bellDot').classList.toggle('hidden', todo.length === 0);
+  $('sTodo').textContent = pad2(todo.length); $('sProg').textContent = pad2(prog.length); $('sDone').textContent = pad2(done.length);
+  $('sCancel').textContent = cancelled.length ? cancelled.length + ' annulée(s)' : 'Simulation';
+
+  // Sélection par défaut : la plus urgente non traitée, sinon la plus récente
+  if (!alerts.find((a) => a.id === selectedId)) {
+    const open = alerts.filter((a) => a.status === 'a_qualifier' || a.status === 'en_cours');
+    selectedId = (open.find((a) => a.priority === 'urgente') || open[0] || alerts[0] || {}).id || null;
+  }
+
+  if (view === 'alertes') { renderFocus(alerts); renderQueue(alerts); renderBefore(alerts); }
+  if (view === 'dossiers') renderDossiers(alerts);
+  if (view === 'journal') renderJournal(alerts);
+  flashId = null;
+}
+
+/* ---------- Carte de l'alerte sélectionnée ---------- */
+function renderFocus(alerts) {
+  const a = alerts.find((x) => x.id === selectedId);
+  const box = $('focus');
+  if (!a) {
+    box.className = 'focus';
+    box.innerHTML = '<div class="empty-focus">Aucune alerte pour le moment.<br>Ouvrez <b>mimi</b> (index.html) ou <b>Les petits riens</b> (carnet.html) dans le même navigateur pour en déclencher une.</div>';
+    return;
+  }
+  const open = a.status === 'a_qualifier' || a.status === 'en_cours';
+  const tagLabel = a.status === 'a_qualifier' ? 'Nouvelle alerte' : STATUS[a.status];
+  box.className = 'focus' + (a.priority === 'urgente' && open ? ' urgent' : '') + (flashId === a.id ? ' flash' : '');
+
+  const evidenceHtml = a.source === 'carnet'
+    ? '<p class="small">Geste discret : aucune preuve collectée par défaut (minimisation des données).</p>'
+    : a.evidence.length === 0
+      ? '<p class="small">L\'étudiante n\'a placé aucun élément dans son coffre.</p>'
+      : a.evidence.map((e) => `<div class="evidence">${esc(e.text)}<small>Mis de côté à ${Mimi.formatTime(e.addedAt)} · <span class="tag t-synth">Synthétique</span></small></div>`).join('');
+
+  box.innerHTML = `
+    <div class="focus-top">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="tag t-${a.status}">${tagLabel}</span>
+        <span class="tag t-${a.priority}">${PRIORITY[a.priority]}</span>
+        <span class="tag t-synth">Données synthétiques</span>
+      </div>
+      <span class="meta">${relTime(a.deliveredAt || a.createdAt)} · ${Mimi.formatTimeSec(a.deliveredAt || a.createdAt)}</span>
+    </div>
+    <h2>${a.status === 'annulee' ? '↩ Alerte annulée par l\'étudiante' : '🚨 ALERTE FICTIVE : ' + esc(a.title)}</h2>
+    <div class="meta">${a.id} / ${esc(a.app)} / Réception confirmée par la plateforme${a.deliveredAt && a.deliveredAt - a.createdAt > 2000 ? ' (reçue après rétablissement du réseau)' : ''}</div>
+
+    <div class="focus-actions">
+      <button class="btn btn-dark" id="evBtn">${showEvidence ? 'Masquer les preuves' : 'Voir les preuves'}</button>
+      ${a.status === 'a_qualifier' ? '<button class="btn btn-light" id="takeBtn">Prendre en charge</button>' : ''}
+      ${a.status === 'en_cours' ? '<button class="btn btn-light" id="closeBtn">Clôturer</button>' : ''}
+      ${a.priority === 'urgente' && open ? '<button class="btn btn-red" id="escBtn">Escalade (simulée)</button>' : ''}
+      <span class="note">Preuves : accès habilité et journalisé.</span>
+    </div>
+
+    <div class="details">
+      <div>
+        <div class="kv-grid">
+          <div class="kv"><span>Étudiante</span><b>${esc(a.pseudo)}</b></div>
+          <div class="kv"><span>NPI (fictif)</span><b>${esc(a.identityRevealed ? a.npi : Mimi.maskNpi(a.npi))}</b></div>
+          <div class="kv"><span>Type</span><b>${esc(a.type)}</b></div>
+          <div class="kv"><span>Zone</span><b>${esc(a.zone)}</b></div>
+          <div class="kv wide"><span>Canal sûr convenu</span><b>${esc(Mimi.SAFE_CHANNELS[a.channel] || 'Non renseigné')}</b></div>
+        </div>
+        ${!a.identityRevealed && a.status !== 'annulee' ? `
+          <div class="sec">Identité</div>
+          <div class="reveal">
+            <select id="reason"><option value="">— Motif obligatoire —</option><option>Recontact via le canal sûr</option><option>Orientation vers un service compétent</option><option>Escalade (danger immédiat)</option></select>
+            <button class="btn btn-light" id="revealBtn">Révéler le NPI</button>
+          </div>
+          <p class="small">Masquée par défaut. Chaque révélation est tracée au journal d'accès.</p>` : ''}
+        ${showEvidence ? `<div class="sec">Éléments transmis (${a.evidence.length})</div>${evidenceHtml}` : ''}
+      </div>
+      <div>
+        <div class="sec" style="margin-top:0">Note de l'agente</div>
+        <textarea id="notes" placeholder="Actions menées, orientation proposée… (fictif)" ${open ? '' : 'disabled'}>${esc(a.notes || '')}</textarea>
+        <button class="btn btn-light" id="saveNotes" style="margin-top:6px" ${open ? '' : 'disabled'}>Enregistrer</button>
+        <div class="sec">Journal du dossier</div>
+        <ul class="log">${a.log.slice().reverse().map((l) => `<li><b>${Mimi.formatTimeSec(l.at)}</b> — ${esc(l.who)} : ${esc(l.what)}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+
+  // --- Actions (toutes humaines, toutes journalisées) ---
+  const log = (what) => (x) => x.log.push({ at: Date.now(), who: AGENT, what });
+  $('evBtn').onclick = () => {
+    showEvidence = !showEvidence;
+    if (showEvidence && !consulted.has(a.id)) { consulted.add(a.id); Mimi.updateAlert(a.id, log('Consultation des preuves')); }
+    render();
+  };
+  if ($('takeBtn')) $('takeBtn').onclick = () => { Mimi.updateAlert(a.id, (x) => { x.status = 'en_cours'; log('Alerte prise en charge')(x); }); render(); };
+  if ($('closeBtn')) $('closeBtn').onclick = () => { Mimi.updateAlert(a.id, (x) => { x.status = 'cloturee'; log('Dossier clôturé')(x); }); render(); };
+  if ($('escBtn')) $('escBtn').onclick = () => {
+    if (!confirm('ESCALADE SIMULÉE : aucun service réel ne sera contacté. Continuer ?')) return;
+    Mimi.updateAlert(a.id, (x) => { if (x.status === 'a_qualifier') x.status = 'en_cours'; log('Escalade SIMULÉE vers les services compétents — aucun appel réel')(x); });
+    render();
+  };
+  $('saveNotes').onclick = () => { Mimi.updateAlert(a.id, (x) => { x.notes = $('notes').value; log('Note mise à jour')(x); }); render(); };
+  if ($('revealBtn')) $('revealBtn').onclick = () => {
+    const r = $('reason').value;
+    if (!r) { alert('Indiquez un motif avant de révéler l\'identité.'); return; }
+    Mimi.updateAlert(a.id, (x) => { x.identityRevealed = true; log('NPI révélé — motif : ' + r)(x); });
+    render();
+  };
+}
+
+/* ---------- File de traitement ---------- */
+function renderQueue(alerts) {
+  const open = alerts.filter((a) => a.status !== 'cloturee');
+  $('queueCount').textContent = open.length + ' alerte(s) fictive(s)';
+  $('queue').innerHTML = open.length === 0
+    ? '<tr><td colspan="5" style="color:var(--muted);text-align:center">File vide</td></tr>'
+    : open.map((a) => `<tr class="row ${a.id === selectedId ? 'sel' : ''}" data-id="${a.id}">
+        <td><b>${a.id}</b></td><td>${esc(a.trigger)}</td><td>${Mimi.formatTime(a.deliveredAt || a.createdAt)}</td>
+        <td><span class="tag t-${a.priority}">${PRIORITY[a.priority]}</span></td>
+        <td><span class="tag t-${a.status}">${STATUS[a.status]}</span></td></tr>`).join('');
+  $('queue').querySelectorAll('tr.row').forEach((r) => r.addEventListener('click', () => { selectedId = r.dataset.id; showEvidence = false; render(); }));
+}
+
+/* ---------- Avant de contacter (selon le type d'alerte) ---------- */
+function renderBefore(alerts) {
+  const a = alerts.find((x) => x.id === selectedId);
+  const box = $('before');
+  const items = CHECKLISTS[a ? a.source : 'mimi'];
+  const checked = a ? a.checklist || [] : [];
+  const disabled = !a || !(a.status === 'a_qualifier' || a.status === 'en_cours');
+  box.innerHTML = `<h3>Avant de contacter</h3>
+    ${items.map((t, i) => `<label><span class="num">${pad2(i + 1)}</span><input type="checkbox" data-i="${i}" ${checked.includes(i) ? 'checked' : ''} ${disabled ? 'disabled' : ''}><span>${t}</span></label>`).join('')}
+    <p class="small">Aucune notification envoyée à l'étudiante.</p>`;
+  box.querySelectorAll('input').forEach((cb) => cb.addEventListener('change', () => {
+    const i = Number(cb.dataset.i);
+    Mimi.updateAlert(a.id, (x) => {
+      x.checklist = x.checklist || [];
+      if (cb.checked) x.checklist.push(i); else x.checklist = x.checklist.filter((n) => n !== i);
+      x.log.push({ at: Date.now(), who: AGENT, what: (cb.checked ? 'Vérifié : ' : 'Décoché : ') + items[i] });
+    });
+    render();
+  }));
+}
+
+/* ---------- Dossiers ---------- */
+function renderDossiers(alerts) {
+  $('allRows').innerHTML = alerts.length === 0 ? '<tr><td colspan="5" style="color:var(--muted);text-align:center">Aucun dossier</td></tr>'
+    : alerts.map((a) => `<tr class="row" data-id="${a.id}"><td><b>${a.id}</b></td><td>${esc(a.pseudo)}</td><td>${esc(a.type)}</td>
+        <td>${Mimi.formatDateTime(a.createdAt)}</td><td><span class="tag t-${a.status}">${STATUS[a.status]}</span></td></tr>`).join('');
+  $('allRows').querySelectorAll('tr.row').forEach((r) => r.addEventListener('click', () => { selectedId = r.dataset.id; view = 'alertes'; render(); }));
+}
+
+/* ---------- Journal d'accès ---------- */
+function renderJournal(alerts) {
+  const rows = alerts.flatMap((a) => a.log.map((l) => ({ ...l, id: a.id }))).sort((x, y) => y.at - x.at);
+  $('journalRows').innerHTML = rows.length === 0 ? '<tr><td colspan="4" style="color:var(--muted);text-align:center">Journal vide</td></tr>'
+    : rows.map((l) => {
+        const sensitive = /NPI révélé|Consultation|Escalade/.test(l.what);
+        return `<tr><td>${Mimi.formatDateTime(l.at)}</td><td><b>${l.id}</b></td><td>${esc(l.who)}</td><td ${sensitive ? 'style="color:var(--red);font-weight:600"' : ''}>${esc(l.what)}</td></tr>`;
+      }).join('');
+}
+
+/* =================== SON (côté cellule UNIQUEMENT) =================== */
+let audioCtx = null;
+$('bell').addEventListener('click', () => {
+  soundOn = !soundOn;
+  if (soundOn && !audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  $('bell').firstChild.textContent = soundOn ? '🔔' : '🔕';
+  if (soundOn) beep(false);
+});
+function beep(urgent) {
+  if (!soundOn || !audioCtx) return;
+  (urgent ? [0, .18, .36, .54] : [0, .25]).forEach((d) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = urgent ? 990 : 820; o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(.15, audioCtx.currentTime + d);
+    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + d + .15);
+    o.start(audioCtx.currentTime + d); o.stop(audioCtx.currentTime + d + .16);
+  });
+}
+let flashTimer = null;
+function flashTitle() {
+  const base = 'Cellule — supervision (fictive)'; let n = 0;
+  clearInterval(flashTimer);
+  flashTimer = setInterval(() => { document.title = (n++ % 2) ? base : '🚨 NOUVELLE ALERTE (fictive)'; if (n > 10) { clearInterval(flashTimer); document.title = base; } }, 700);
+}
+
+$('resetBtn').addEventListener('click', () => {
+  if (!confirm('Effacer toutes les données de démo (téléphones + cellule) ?')) return;
+  Mimi.resetAll(); selectedId = null; known = new Set(); consulted.clear(); render();
+});
+
+/* =================== TEMPS RÉEL =================== */
+const typing = () => document.activeElement && document.activeElement.id === 'notes';
+Mimi.onChange(() => {
+  if (typing()) { const keep = $('notes').value; render(); if ($('notes')) { $('notes').value = keep; $('notes').focus(); } return; }
+  render();
+});
+setInterval(() => { if (!typing()) render(); }, 20000); // met à jour "À l'instant", "Il y a 2 min"…
+
+render();
+</script>
+</body>
+</html>

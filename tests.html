@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tests automatiques — Alerte discrète</title>
+  <style>
+    :root { --navy: #14243D; --ok: #2E6B4E; --ko: #9B403F; --line: #E3E7EE; --muted: #7A8597; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Inter", "Segoe UI", system-ui, sans-serif; background: #F3F5F9; color: var(--navy); padding: 24px 16px; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    h1 { font-size: 24px; } .sub { color: var(--muted); margin: 4px 0 18px; }
+    .summary { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .pill { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 12px 18px; font-weight: 700; }
+    .pill.ok { color: var(--ok); } .pill.ko { color: var(--ko); }
+    section { background: #fff; border: 1px solid var(--line); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+    section h2 { font-size: 15px; padding: 12px 16px; background: #FAFBFC; border-bottom: 1px solid var(--line); }
+    section h2 small { font-weight: 400; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    td { padding: 9px 16px; border-bottom: 1px solid var(--line); } tr:last-child td { border-bottom: none; }
+    td.r { width: 40px; font-size: 17px; }
+    button { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font: inherit; font-weight: 600; cursor: pointer; }
+    .note { font-size: 13px; color: var(--muted); margin-top: 14px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Tests automatiques du prototype</h1>
+  <p class="sub">Grille « Tester avant de démontrer » (Module 2). Espace de données séparé : la démo en cours n'est pas modifiée.</p>
+  <div class="summary" id="summary"></div>
+  <div id="results"></div>
+  <button id="rerun">Relancer les tests</button>
+  <p class="note">L'accessibilité (« une personne qui ne connaît pas l'outil s'en sert-elle sans aide ? ») se teste avec de vraies personnes : voir FICHE_RISQUES.md.</p>
+</div>
+
+<script src="shared.js"></script>
+<script src="bot.js"></script>
+<script>
+/* Mini-moteur de tests : chaque test = [description, fonction qui renvoie true/false] */
+const SUITES = [];
+const suite = (name, why, tests) => SUITES.push({ name, why, tests });
+
+/* ---------------- PORTE 1 : mimi (phrase secrète) ---------------- */
+suite('Biais — détection de la phrase secrète (mimi)', 'secret de test : « mangue », « été », « promener le chat »', [
+  ['Phrase normale : « Je vais acheter une mangue »', () => Mimi.containsSecret('Je vais acheter une mangue', 'mangue')],
+  ['Majuscules : « UNE MANGUE STP »', () => Mimi.containsSecret('UNE MANGUE STP', 'mangue')],
+  ['Ponctuation / emoji : « mangue!!! 🥭 »', () => Mimi.containsSecret('mangue!!! 🥭', 'mangue')],
+  ['Accent oublié : secret « été », écrit « ete »', () => Mimi.containsSecret('Cet ete il fait chaud', 'été')],
+  ['Accent ajouté : secret « ete », écrit « été »', () => Mimi.containsSecret('Cet été il fait chaud', 'ete')],
+  ['Phrase de plusieurs mots : « Je vais promener le chat »', () => Mimi.containsSecret('Bon, je vais promener le chat !', 'promener le chat')],
+  ['Langue locale (fon) avec lettre ɛ : « akwɛ »', () => Mimi.containsSecret('Il me faut un peu de akwɛ', 'akwɛ')],
+  ['Lettres du fon conservées : « akwɛ » ≠ « akw »', () => !Mimi.containsSecret('akw', 'akwɛ')],
+]);
+suite('Biais — pas de fausses alertes (mimi)', 'ne doit PAS se déclencher', [
+  ['« mangues » ≠ « mangue »', () => !Mimi.containsSecret('Les mangues sont mûres', 'mangue')],
+  ['« chaton » ne déclenche pas « chat »', () => !Mimi.containsSecret('Mon chaton dort', 'chat')],
+  ['« achat » ne déclenche pas « chat »', () => !Mimi.containsSecret('Un achat au marché', 'chat')],
+  ['Mots de la phrase dans le désordre : pas d\'alerte', () => !Mimi.containsSecret('le chat va promener', 'promener le chat')],
+  ['Secret vide : jamais d\'alerte', () => !Mimi.containsSecret('n\'importe quoi', '')],
+]);
+suite('Limites connues (documentées, pas des bugs)', 'ces cas NE déclenchent PAS l\'alerte', [
+  ['Faute de frappe « mangeu » : non détecté', () => !Mimi.containsSecret('une mangeu', 'mangue')],
+  ['Langage SMS « mang » : non détecté', () => !Mimi.containsSecret('une mang', 'mangue')],
+]);
+
+/* ---------------- PORTE 2 : carnet (double appui) ---------------- */
+suite('Geste discret — double appui (carnet)', 'délais : rapide 350 ms · normal 500 ms · lent 750 ms', [
+  ['Deux appuis à 200 ms (normal) → double appui', () => Mimi.isDoubleTap(1000, 1200, Mimi.TAP_DELAYS.normal)],
+  ['Deux appuis à 700 ms (normal) → PAS de double appui', () => !Mimi.isDoubleTap(1000, 1700, Mimi.TAP_DELAYS.normal)],
+  ['Deux appuis à 700 ms (lent) → double appui (accessibilité)', () => Mimi.isDoubleTap(1000, 1700, Mimi.TAP_DELAYS.lent)],
+  ['Deux appuis à 450 ms (rapide) → PAS de double appui', () => !Mimi.isDoubleTap(1000, 1450, Mimi.TAP_DELAYS.rapide)],
+  ['Premier appui seul (pas d\'appui précédent) → rien', () => !Mimi.isDoubleTap(0, 1000, Mimi.TAP_DELAYS.normal)],
+  ['Rebond d\'écran (< 30 ms) ignoré', () => !Mimi.isDoubleTap(1000, 1010, Mimi.TAP_DELAYS.normal)],
+]);
+
+/* ---------------- SÉCURITÉ ---------------- */
+suite('Sécurité', 'mots dangereux refusés, anti-injection, camouflage', [
+  ['Refuse « sos »', () => Mimi.validateSecret('SOS') !== null],
+  ['Refuse une phrase contenant « aide »', () => Mimi.validateSecret('j\'ai besoin d\'aide') !== null],
+  ['Refuse « bonjour » (trop courant)', () => Mimi.validateSecret('Bonjour') !== null],
+  ['Refuse un mot trop court « ab »', () => Mimi.validateSecret('ab') !== null],
+  ['Accepte « promener le chat »', () => Mimi.validateSecret('promener le chat') === null],
+  ['Protection XSS : un message <script> est neutralisé', () => !Mimi.escapeHtml('<script>alert(1)<\/script>').includes('<script>')],
+  ['Aucune réponse de mimi ne contient « alerte », « sos », « police »… (200 essais)', () => {
+    const s = Array.from({ length: 200 }, () => MimiBot.reply(['bonjour', 'meteo', 'blague', 'regarde', 'cours', 'xyz', 'merci'][Math.floor(Math.random() * 7)]));
+    s.push(MimiBot.CONFIRMATION_PHRASE, MimiBot.CANCEL_REPLY);
+    return s.every((x) => !/alerte|sos|police|urgence|secours/i.test(x));
+  }],
+]);
+
+/* ---------------- DONNÉES FICTIVES ---------------- */
+suite('Données fictives', 'aucune donnée réelle ne peut entrer', [
+  ['Refuse un vrai format de NPI (10 chiffres)', () => Mimi.validateNpi('1234567890') !== null],
+  ['Refuse un texte quelconque', () => Mimi.validateNpi('Aïcha') !== null],
+  ['Accepte « FICT-123456 »', () => Mimi.validateNpi('FICT-123456') === null],
+  ['Le générateur produit toujours un NPI fictif valide (100 essais)', () => Array.from({ length: 100 }, Mimi.generateFakeNpi).every((n) => Mimi.validateNpi(n) === null)],
+  ['NPI masqué par défaut : « FICT-123456 » → « FICT-••••56 »', () => Mimi.maskNpi('FICT-123456') === 'FICT-••••56'],
+]);
+
+/* ---------------- FONCTIONNALITÉ : mimi de bout en bout ---------------- */
+suite('Parcours complet — mimi (cyberharcèlement)', 'config → coffre → alerte → annulation → contrôle humain', [
+  ['Sans consentement, l\'identité n\'est pas considérée comme complète', () => { Mimi.saveConfig({ npi: 'FICT-000001', channel: 'mimi' }); return !Mimi.hasIdentity(); }],
+  ['Configuration complète (NPI fictif + canal sûr + consentement + phrase)', () => {
+    const c = Mimi.saveConfig({ secret: 'mangue', npi: 'FICT-000001', channel: 'mimi', consent: true });
+    return Mimi.hasIdentity() && c.pseudo.startsWith('Étudiante #');
+  }],
+  ['Appui long → élément au coffre', () => { Mimi.addToVault('Message fictif de test'); return Mimi.getVault().length === 1; }],
+  ['Phrase secrète → alerte « à qualifier », priorité haute, n° SIM-001', () => { const a = Mimi.sendAlert('mimi'); return a.status === 'a_qualifier' && a.priority === 'haute' && a.id === 'SIM-001'; }],
+  ['L\'alerte contient le coffre et le canal sûr', () => { const a = Mimi.getAlerts()[0]; return a.evidence.length === 1 && a.channel === 'mimi'; }],
+  ['Ajout au coffre pendant l\'alerte → ajouté à l\'alerte', () => { Mimi.addToVault('Deuxième message fictif'); return Mimi.getAlerts()[0].evidence.length === 2; }],
+  ['« oublie » dans les 30 s → alerte annulée', () => Mimi.isCancel('Non oublie !') && Mimi.cancelRecentAlert('mimi') && Mimi.getAlerts()[0].status === 'annulee'],
+  ['« oublie » sans alerte récente → rien', () => Mimi.cancelRecentAlert('mimi') === false],
+  ['Contrôle humain : prise en charge puis clôture, tout est journalisé', () => {
+    const a = Mimi.sendAlert('mimi');
+    if (Mimi.getAlerts().find((x) => x.id === a.id).status !== 'a_qualifier') return false; // rien d'automatique
+    Mimi.updateAlert(a.id, (x) => { x.status = 'en_cours'; x.log.push({ at: Date.now(), who: 'test', what: 'prise' }); });
+    Mimi.updateAlert(a.id, (x) => { x.status = 'cloturee'; x.log.push({ at: Date.now(), who: 'test', what: 'clôture' }); });
+    const f = Mimi.getAlerts().find((x) => x.id === a.id);
+    return f.status === 'cloturee' && f.log.length === 3;
+  }],
+]);
+
+/* ---------------- FONCTIONNALITÉ : carnet de bout en bout ---------------- */
+suite('Parcours complet — carnet (agression physique)', 'alerte urgente, sans preuve collectée, annulable, hors ligne', [
+  ['Double appui sur le nuage → alerte URGENTE « Geste discret »', () => { const a = Mimi.sendAlert('carnet'); return a.priority === 'urgente' && a.trigger === 'Geste discret'; }],
+  ['Minimisation : aucune preuve collectée par le carnet', () => Mimi.getActiveAlert('carnet').evidence.length === 0],
+  ['Les deux portes sont indépendantes (annuler le carnet ne touche pas mimi)', () => {
+    const m = Mimi.sendAlert('mimi');
+    Mimi.cancelRecentAlert('carnet');
+    return Mimi.getAlerts().find((x) => x.id === m.id).status === 'a_qualifier';
+  }],
+  ['Double appui sur le cœur dans les 30 s → alerte carnet annulée', () => Mimi.getAlerts().filter((a) => a.source === 'carnet').pop().status === 'annulee'],
+  ['Hors ligne : l\'alerte attend et n\'arrive PAS à la cellule', () => {
+    const a = Mimi.sendAlert('carnet', { online: false });
+    return !a.delivered && !Mimi.getDeliveredAlerts().some((x) => x.id === a.id);
+  }],
+  ['Retour du réseau : l\'alerte en attente arrive à la cellule', () => {
+    Mimi.flushQueue();
+    const last = Mimi.getAlerts().pop();
+    return last.delivered && Mimi.getDeliveredAlerts().some((x) => x.id === last.id);
+  }],
+  ['Numéros de dossier uniques', () => { const ids = Mimi.getAlerts().map((a) => a.id); return new Set(ids).size === ids.length; }],
+  ['« Tout effacer » : plus rien sur le téléphone', () => { Mimi.wipeDevice(); return !Mimi.getConfig() && Mimi.getVault().length === 0 && Mimi.getChat().length === 0; }],
+]);
+
+/* ---------------- CAMOUFLAGE ---------------- */
+suite('Camouflage — mimi répond normalement', 'quelqu\'un qui regarde l\'écran ne doit rien soupçonner', [
+  ['« Bonjour » → salutation', () => MimiBot.classify('Bonjour Mimi').name === 'salutation'],
+  ['« Oui, entre deux cours » → cours', () => MimiBot.classify('Oui, entre deux cours :)').name === 'cours'],
+  ['« Il va pleuvoir ? » → météo', () => MimiBot.classify('Il va pleuvoir ?').name === 'meteo'],
+  ['Message inconnu → réponse générique (jamais vide)', () => MimiBot.reply('xyz abc').length > 0],
+]);
+
+/* ---------------- Exécution ---------------- */
+function run() {
+  Mimi.setNamespace('mimi_test_');
+  Mimi.resetAll();
+  let ok = 0, ko = 0;
+  const html = SUITES.map((s) => {
+    const rows = s.tests.map(([desc, fn]) => {
+      let pass = false;
+      try { pass = !!fn(); } catch (e) { desc += ' — erreur : ' + e.message; }
+      pass ? ok++ : ko++;
+      return `<tr><td class="r">${pass ? '✅' : '❌'}</td><td>${Mimi.escapeHtml(desc)}</td></tr>`;
+    }).join('');
+    return `<section><h2>${s.name} <small>— ${s.why}</small></h2><table>${rows}</table></section>`;
+  }).join('');
+  Mimi.resetAll();
+  Mimi.setNamespace('mimi_');
+  document.getElementById('results').innerHTML = html;
+  document.getElementById('summary').innerHTML =
+    `<div class="pill ok">✅ ${ok} réussis</div><div class="pill ${ko ? 'ko' : 'ok'}">❌ ${ko} échoués</div><div class="pill">Total : ${ok + ko}</div>`;
+}
+document.getElementById('rerun').addEventListener('click', run);
+run();
+</script>
+</body>
+</html>

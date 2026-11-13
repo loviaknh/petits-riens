@@ -1,0 +1,15 @@
+{
+  "id": "carnet",
+  "name": "Les petits riens",
+  "short_name": "Petits riens",
+  "description": "Mon carnet de petits riens",
+  "start_url": "carnet.html",
+  "display": "standalone",
+  "background_color": "#F8F3EB",
+  "theme_color": "#F8F3EB",
+  "icons": [
+    { "src": "carnet-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "carnet-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "carnet-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

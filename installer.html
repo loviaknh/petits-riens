@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Page NEUTRE : rien n'évoque la violence ou l'alerte, même dans l'historique du navigateur -->
+  <title>Mes petites apps</title>
+  <meta name="theme-color" content="#F7F3F0">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Lora:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #F7F3F0; --ink: #342E46; --muted: #857C93; --card: rgba(255,255,255,.7); --line: rgba(255,255,255,.9);
+      --violet: #7B6197; --lav: #EEE8FA; --paper: #F8F3EB; --peach: #F2D6C8;
+      --font: "DM Sans", "Segoe UI", system-ui, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); color: var(--ink); background: var(--bg); min-height: 100vh; overflow-x: hidden; }
+    /* Taches douces en fond (même esprit que le carnet) */
+    .blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .blobs i { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .6; }
+    .blobs i:nth-child(1) { width: 340px; height: 340px; background: #DCCFF0; top: -80px; left: -60px; }
+    .blobs i:nth-child(2) { width: 300px; height: 300px; background: #F4D8C9; bottom: -60px; right: -40px; }
+    .blobs i:nth-child(3) { width: 220px; height: 220px; background: #F4E6A6; top: 40%; left: 55%; }
+    .wrap { position: relative; z-index: 1; max-width: 920px; margin: 0 auto; padding: 32px 16px 40px; }
+    .hidden { display: none !important; }
+
+    h1 { font-family: Lora, Georgia, serif; font-weight: 500; font-size: clamp(30px, 5vw, 42px); letter-spacing: -.01em; }
+    .lead { color: var(--muted); font-size: 17px; margin-top: 8px; line-height: 1.5; }
+    .glass { background: var(--card); border: 1px solid var(--line); border-radius: 24px;
+      -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 10px 30px rgba(52,46,70,.08); }
+
+    /* ---------- Vue ordinateur : QR code ---------- */
+    .desk { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: center; padding: 28px; margin-top: 28px; }
+    .qr { background: #fff; border-radius: 18px; padding: 18px; display: grid; place-items: center; }
+    .qr #qrcode img, .qr #qrcode canvas { display: block; width: 100% !important; height: auto !important; image-rendering: pixelated; }
+    .url { font-size: 13px; color: var(--muted); word-break: break-all; margin-top: 10px; text-align: center; }
+    .desk h2 { font-size: 22px; margin-bottom: 10px; }
+    .desk ol { margin-left: 20px; line-height: 1.7; color: #4D4560; }
+    .warn { background: #FFF3DD; color: #7A5A12; border-radius: 14px; padding: 12px 14px; font-size: 14px; line-height: 1.5; margin-top: 16px; }
+
+    /* ---------- Les deux apps ---------- */
+    .apps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+    .app { padding: 20px; display: flex; gap: 16px; align-items: center; }
+    .app img { width: 72px; height: 72px; border-radius: 18px; box-shadow: 0 6px 16px rgba(52,46,70,.15); flex-shrink: 0; }
+    .app h3 { font-size: 19px; } .app p { color: var(--muted); font-size: 14px; margin-top: 2px; }
+    .app a { display: inline-block; margin-top: 10px; text-decoration: none; background: var(--ink); color: #fff; font-weight: 700; font-size: 14px; padding: 9px 16px; border-radius: 12px; }
+
+    /* ---------- Étapes ---------- */
+    .steps-box { padding: 22px; margin-top: 18px; }
+    .tabs { display: inline-flex; background: rgba(52,46,70,.06); padding: 4px; border-radius: 12px; margin-bottom: 18px; }
+    .tabs button { border: none; background: none; font: inherit; font-weight: 600; padding: 8px 16px; border-radius: 9px; cursor: pointer; color: var(--muted); }
+    .tabs button.on { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .steps { list-style: none; display: grid; gap: 12px; }
+    .steps li { display: flex; gap: 14px; align-items: center; background: rgba(255,255,255,.6); border-radius: 16px; padding: 12px 14px; line-height: 1.4; }
+    .steps .n { width: 32px; height: 32px; border-radius: 50%; background: var(--lav); color: var(--violet); display: grid; place-items: center; font-weight: 700; flex-shrink: 0; }
+    .steps li { flex-wrap: wrap; }
+    .steps li > span:not(.n):not(.ico) { flex: 1 1 170px; } /* le texte garde sa place, le badge passe à la ligne si besoin */
+    .steps .ico { margin-left: auto; font-size: 13px; background: #fff; border: 1px solid #E7E1EF; border-radius: 8px; padding: 4px 9px; white-space: nowrap; font-weight: 600; }
+    .tip { color: var(--muted); font-size: 14px; margin-top: 14px; line-height: 1.5; }
+    footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 30px; }
+
+    @media (max-width: 760px) { .desk, .apps { grid-template-columns: 1fr; } .desk { padding: 20px; } }
+  </style>
+</head>
+<body>
+<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="wrap">
+  <h1>Mes petites apps</h1>
+  <p class="lead">Deux apps douces pour ton quotidien. Gratuites, sans compte, sans store : elles s'ajoutent directement à ton écran d'accueil.</p>
+
+  <!-- ===== Sur ordinateur : QR code à scanner ===== -->
+  <section class="glass desk hidden" id="desktop">
+    <div>
+      <div class="qr"><div id="qrcode"></div></div>
+      <div class="url" id="url"></div>
+    </div>
+    <div>
+      <h2>Scanne avec ton téléphone 📱</h2>
+      <ol>
+        <li>Ouvre l'appareil photo de ton téléphone.</li>
+        <li>Vise le QR code.</li>
+        <li>Touche le lien qui apparaît : cette page s'ouvre sur ton téléphone avec les étapes.</li>
+      </ol>
+      <div class="warn hidden" id="localWarn">⚠ Cette adresse n'existe que sur cet ordinateur (<b>localhost</b>). Pour scanner avec un vrai téléphone, utilise l'adresse du site en ligne.</div>
+    </div>
+  </section>
+
+  <!-- ===== Les deux apps ===== -->
+  <section class="apps">
+    <div class="glass app">
+      <img src="icon-192.png" alt="">
+      <div><h3>mimi</h3><p>Ton petit coin de douceur</p><a href="index.html">Ouvrir mimi</a></div>
+    </div>
+    <div class="glass app">
+      <img src="carnet-icon-192.png" alt="">
+      <div><h3>Les petits riens</h3><p>Ton carnet de petits riens</p><a href="carnet.html">Ouvrir le carnet</a></div>
+    </div>
+  </section>
+
+  <!-- ===== Étapes d'installation ===== -->
+  <section class="glass steps-box">
+    <div class="tabs"><button data-os="android">Android</button><button data-os="ios">iPhone</button></div>
+
+    <ol class="steps" id="steps-android">
+      <li><span class="n">1</span><span>Touche <b>« Ouvrir »</b> sous l'app de ton choix (dans <b>Chrome</b>).</span></li>
+      <li><span class="n">2</span><span>Touche le menu en haut à droite.</span><span class="ico">⋮</span></li>
+      <li><span class="n">3</span><span>Choisis <b>« Ajouter à l'écran d'accueil »</b> ou <b>« Installer l'application »</b>.</span><span class="ico">＋ Écran d'accueil</span></li>
+      <li><span class="n">4</span><span>Confirme. L'icône apparaît avec tes autres apps.</span><span class="ico">Ajouter</span></li>
+    </ol>
+
+    <ol class="steps hidden" id="steps-ios">
+      <li><span class="n">1</span><span>Touche <b>« Ouvrir »</b> sous l'app de ton choix (dans <b>Safari</b>).</span></li>
+      <li><span class="n">2</span><span>Touche le bouton <b>Partager</b>, en bas de l'écran.</span><span class="ico">⬆︎</span></li>
+      <li><span class="n">3</span><span>Fais défiler et choisis <b>« Sur l'écran d'accueil »</b>.</span><span class="ico">＋ Écran d'accueil</span></li>
+      <li><span class="n">4</span><span>Touche <b>« Ajouter »</b> en haut à droite.</span><span class="ico">Ajouter</span></li>
+    </ol>
+
+    <p class="tip">Recommence pour la deuxième app. Une fois installées, elles s'ouvrent en plein écran et fonctionnent même sans connexion.</p>
+  </section>
+
+  <footer>Prototype HACK4HER 2026 — données fictives</footer>
+</div>
+
+<!-- Génération du QR code (bibliothèque qrcodejs) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+/* ---------- Détection de l'appareil ---------- */
+const ua = navigator.userAgent;
+const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isAndroid = /Android/i.test(ua);
+const isMobile = isIOS || isAndroid;
+
+/* Onglets Android / iPhone (pré-sélection selon l'appareil) */
+function showOS(os) {
+  document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('on', b.dataset.os === os));
+  document.getElementById('steps-android').classList.toggle('hidden', os !== 'android');
+  document.getElementById('steps-ios').classList.toggle('hidden', os !== 'ios');
+}
+document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => showOS(b.dataset.os)));
+showOS(isIOS ? 'ios' : 'android');
+
+/* ---------- Sur ordinateur : QR code de CETTE page ---------- */
+if (!isMobile) {
+  const target = location.href.split('#')[0];
+  document.getElementById('desktop').classList.remove('hidden');
+  document.getElementById('url').textContent = target;
+  // Une adresse locale n'est pas joignable depuis un téléphone : on prévient
+  if (/^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname) || location.protocol === 'file:') {
+    document.getElementById('localWarn').classList.remove('hidden');
+  }
+  if (window.QRCode) {
+    new QRCode(document.getElementById('qrcode'), {
+      text: target, width: 512, height: 512,
+      colorDark: '#342E46', colorLight: '#FFFFFF', correctLevel: QRCode.CorrectLevel.M
+    });
+  } else {
+    // Hors connexion : la bibliothèque n'a pas pu se charger
+    document.getElementById('qrcode').textContent = 'QR code indisponible hors connexion : utilise l\'adresse ci-dessous.';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Icône neutre : un petit chat endormi. Rien n'évoque la sécurité. -->
+  <rect width="512" height="512" rx="112" fill="#EEE8FA"/>
+  <ellipse cx="262" cy="372" rx="170" ry="38" fill="#F3DE9A"/>
+  <path d="M120 350c0-70 62-112 144-112s138 38 138 94c0 18-12 26-30 26H150c-20 0-30-3-30-8z" fill="#B9A6DA"/>
+  <circle cx="176" cy="250" r="62" fill="#C6B5E3"/>
+  <path d="M126 214l6-54 38 32zM226 214l-6-54-38 32z" fill="#C6B5E3"/>
+  <path d="M148 252q10 10 20 0M186 252q10 10 20 0" stroke="#4B3F63" stroke-width="7" fill="none" stroke-linecap="round"/>
+</svg>
