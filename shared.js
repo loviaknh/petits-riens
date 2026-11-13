@@ -235,20 +235,38 @@ const Mimi = (() => {
     const list = getAlerts();
     list.push(alert);
     saveAlerts(list);
+    if (online) notifyCellule(alert);
     return alert;
+  }
+
+  /** Prévient la cellule par e-mail via la fonction serveur /api/notify.
+   *  On n'envoie QUE le n° de dossier, la source et la priorité : aucune donnée
+   *  personnelle. Silencieux en cas d'échec (rien ne doit apparaître à l'écran
+   *  de l'étudiante). Désactivé pendant les tests et hors site web. */
+  function notifyCellule(alert) {
+    if (NS !== 'mimi_' || typeof location === 'undefined' || !/^https?:$/.test(location.protocol) || typeof fetch !== 'function') return;
+    try {
+      fetch('/api/notify', {
+        method: 'POST', keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: alert.id, source: alert.source, priority: alert.priority })
+      }).catch(() => {});
+    } catch (e) { /* ignoré */ }
   }
 
   /** Envoie les alertes en attente quand le réseau revient. */
   function flushQueue() {
     const list = getAlerts();
     let changed = false;
+    const sent = [];
     list.forEach((a) => {
       if (!a.delivered) {
-        a.delivered = true; a.deliveredAt = Date.now(); changed = true;
+        a.delivered = true; a.deliveredAt = Date.now(); changed = true; sent.push(a);
         a.log.push({ at: Date.now(), who: 'Système', what: 'Réseau rétabli — alerte transmise à la cellule' });
       }
     });
     if (changed) saveAlerts(list);
+    sent.forEach(notifyCellule); // l'e-mail part aussi au retour du réseau
     return changed;
   }
 
