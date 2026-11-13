@@ -344,8 +344,10 @@ function handleTap(name, el) {
   if (!isDouble) return;
   if (name === 'cloud') {
     // ===== DÉCLENCHEUR : alerte FICTIVE "agression physique" =====
-    // Une seule alerte à la fois : si une alerte carnet est déjà en cours, on n'en recrée pas.
-    if (!Mimi.getActiveAlert('carnet')) Mimi.sendAlert('carnet');
+    // Anti-doublon : pas de nouvelle alerte si la précédente date de moins de 60 s.
+    // (Au-delà, on renvoie : sur le téléphone, personne ne "clôture" l'alerte localement.)
+    const active = Mimi.getActiveAlert('carnet');
+    if (!active || Date.now() - active.createdAt > 60 * 1000) Mimi.sendAlert('carnet');
   } else if (name === 'heart') {
     // Annulation dans les 30 secondes (fausse manipulation)
     Mimi.cancelRecentAlert('carnet');
