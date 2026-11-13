@@ -81,7 +81,7 @@
         <li>Vise le QR code.</li>
         <li>Touche le lien qui apparaît : cette page s'ouvre sur ton téléphone avec les étapes.</li>
       </ol>
-      <div class="warn hidden" id="localWarn">⚠ Cette adresse n'existe que sur cet ordinateur (<b>localhost</b>). Pour scanner avec un vrai téléphone, utilise l'adresse du site en ligne.</div>
+      <div class="warn hidden" id="localWarn">ℹ Cette page est ouverte en local : le QR code renvoie vers la <b>version en ligne</b>, pour que n'importe quel téléphone puisse le scanner.</div>
     </div>
   </section>
 
@@ -140,15 +140,17 @@ function showOS(os) {
 document.querySelectorAll('.tabs button').forEach((b) => b.addEventListener('click', () => showOS(b.dataset.os)));
 showOS(isIOS ? 'ios' : 'android');
 
-/* ---------- Sur ordinateur : QR code de CETTE page ---------- */
+/* ---------- Sur ordinateur : QR code ----------
+ * En ligne : QR code de cette page.
+ * En local (Live Server, fichier) : l'adresse 127.0.0.1 n'est pas joignable
+ * depuis un téléphone → le QR code pointe vers la version EN LIGNE. */
+const PUBLIC_URL = 'https://petits-riens.vercel.app/installer.html';
 if (!isMobile) {
-  const target = location.href.split('#')[0];
+  const isLocal = /^(localhost|127\.|0\.0\.0\.0|192\.168\.|10\.)/.test(location.hostname) || location.protocol === 'file:';
+  const target = isLocal ? PUBLIC_URL : location.href.split('#')[0].split('?')[0];
   document.getElementById('desktop').classList.remove('hidden');
   document.getElementById('url').textContent = target;
-  // Une adresse locale n'est pas joignable depuis un téléphone : on prévient
-  if (/^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname) || location.protocol === 'file:') {
-    document.getElementById('localWarn').classList.remove('hidden');
-  }
+  if (isLocal) document.getElementById('localWarn').classList.remove('hidden');
   if (window.QRCode) {
     new QRCode(document.getElementById('qrcode'), {
       text: target, width: 512, height: 512,
